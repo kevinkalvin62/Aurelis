@@ -223,6 +223,40 @@ begin
 end;
 $$;
 
+create or replace function public.get_organization_members(org_id uuid)
+returns table(id uuid, user_id uuid, role text, display_name text, email text)
+language plpgsql stable security definer set search_path = '' as $$
+begin
+  if not public.is_org_member(org_id) then raise exception 'insufficient permissions'; end if;
+  return query
+    select m.id, m.user_id, m.role, p.display_name, u.email::text
+    from public.organization_members m
+    join public.profiles p on p.user_id = m.user_id
+    join auth.users u on u.id = m.user_id
+    where m.organization_id = org_id
+    order by case m.role when 'owner' then 0 when 'admin' then 1 when 'director' then 2 else 3 end, p.display_name;
+end;
+$$;
+
+create or replace function public.create_setlist_with_items(
+  org_id uuid, program_title text, program_date date, program_notes text, program_source text, program_items jsonb
+) returns uuid language plpgsql security definer set search_path = '' as $$
+declare new_id uuid; item jsonb; item_song uuid; item_position integer := 0;
+begin
+  if not public.can_direct(org_id) then raise exception 'insufficient permissions'; end if;
+  insert into public.setlists(organization_id,title,service_date,notes,source_text,created_by)
+  values(org_id,trim(program_title),program_date,nullif(program_notes,''),nullif(program_source,''),auth.uid()) returning id into new_id;
+  for item in select * from jsonb_array_elements(coalesce(program_items,'[]'::jsonb)) loop
+    item_song := (item ->> 'song_id')::uuid;
+    if not exists(select 1 from public.songs where id = item_song and organization_id = org_id) then raise exception 'song does not belong to organization'; end if;
+    insert into public.setlist_items(setlist_id,song_id,position,selected_key,notes)
+    values(new_id,item_song,item_position,nullif(item ->> 'selected_key',''),nullif(item ->> 'notes',''));
+    item_position := item_position + 1;
+  end loop;
+  return new_id;
+end;
+$$;
+
 create or replace function public.touch_updated_at() returns trigger language plpgsql set search_path = '' as $$
 begin new.updated_at = now(); return new; end;
 $$;
