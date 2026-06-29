@@ -29,7 +29,7 @@ function payloadFor(song: Song, userId: string) {
     content_structured: { version: 1, type: song.contentType, notation: song.notation },
     content_type: song.contentType,
     notation: song.notation,
-    visibility: song.organizationId ? 'organization' as const : 'private' as const,
+    visibility: song.organizationId ? 'organization' as const : song.visibility,
     updated_at: new Date().toISOString(),
   };
 }

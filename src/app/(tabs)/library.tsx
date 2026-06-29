@@ -7,21 +7,22 @@ import { colors, radii, spacing } from '@/constants/design';
 import { useSongStore } from '@/store/song-store';
 import { useAuthStore } from '@/store/auth-store';
 
-const filters = ['Todas', 'Favoritas', 'Organización', 'Privadas'] as const;
+const filters = ['Todas', 'Favoritas', 'Públicas', 'Privadas'] as const;
 
 export default function LibraryScreen() {
   const songs = useSongStore((state) => state.songs);
   const accessMode = useAuthStore((state) => state.accessMode);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<(typeof filters)[number]>('Todas');
-  const visibleSongs = useMemo(() => songs.filter((song) => {
+  const personalSongs = useMemo(() => songs.filter((song) => !song.organizationId), [songs]);
+  const visibleSongs = useMemo(() => personalSongs.filter((song) => {
     const matchesQuery = `${song.title} ${song.artist}`.toLowerCase().includes(query.toLowerCase());
-    const matchesFilter = filter === 'Todas' || (filter === 'Favoritas' && song.favorite) || (filter === 'Organización' && song.visibility === 'organization') || (filter === 'Privadas' && song.visibility === 'private');
+    const matchesFilter = filter === 'Todas' || (filter === 'Favoritas' && song.favorite) || (filter === 'Públicas' && song.visibility === 'public') || (filter === 'Privadas' && song.visibility === 'private');
     return matchesQuery && matchesFilter;
-  }), [filter, query]);
+  }), [filter, personalSongs, query]);
 
   return (
-    <Screen eyebrow="TU REPERTORIO" title="Biblioteca" subtitle={`${songs.length} canciones · ${accessMode === 'authenticated' ? 'sincronización activa' : 'guardadas localmente'}`} right={<Pressable onPress={() => router.push('/editor')} style={styles.add}><Text style={styles.addText}>＋</Text></Pressable>}>
+    <Screen eyebrow="BIBLIOTECA PERSONAL" title="Biblioteca" subtitle={`${personalSongs.length} canciones · ${accessMode === 'authenticated' ? 'sincronización activa' : 'guardadas localmente'}`} right={<Pressable onPress={() => router.push('/editor')} style={styles.add}><Text style={styles.addText}>＋</Text></Pressable>}>
       <View style={styles.search}><Text style={styles.searchIcon}>⌕</Text><TextInput value={query} onChangeText={setQuery} placeholder="Buscar canción o artista" placeholderTextColor="#77706C" style={styles.input} /></View>
       <View style={styles.filters}>{filters.map((item) => <Pressable key={item} onPress={() => setFilter(item)} style={[styles.filter, filter === item && styles.filterActive]}><Text style={[styles.filterText, filter === item && styles.filterTextActive]}>{item}</Text></Pressable>)}</View>
       <View style={styles.heading}><Text style={styles.count}>{visibleSongs.length} CANCIONES</Text><Text style={styles.sort}>Actualizadas recientemente  ↕</Text></View>

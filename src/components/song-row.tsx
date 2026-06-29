@@ -14,7 +14,7 @@ export function SongRow({ song, index }: { song: Song; index?: number }) {
       <View style={styles.indexBox}><Text style={styles.index}>{index ? String(index).padStart(2, '0') : '♪'}</Text></View>
       <View style={styles.main}>
         <Text numberOfLines={1} style={styles.title}>{song.title}</Text>
-        <Text numberOfLines={1} style={styles.meta}>{song.artist} · {song.bpm} BPM</Text>
+        <Text numberOfLines={1} style={styles.meta}>{song.artist || 'Sin autor'} · {song.bpm} BPM · {song.organizationId ? 'Iglesia' : song.visibility === 'public' ? 'Pública' : 'Personal'}</Text>
       </View>
       <View style={styles.key}><Text style={styles.keyText}>{song.key}</Text></View>
       <Text style={styles.chevron}>›</Text>

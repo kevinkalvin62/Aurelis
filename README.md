@@ -28,7 +28,7 @@ npm test
 - `src/store`: estado efímero de ejecución musical.
 - `supabase/migrations`: esquema PostgreSQL y políticas RLS.
 
-Los datos de demostración permiten evaluar el producto sin backend. La autenticación ya usa Supabase cuando se copian las variables de entorno. Antes de producción se deben aplicar las migraciones, generar tipos con Supabase CLI y sustituir el repositorio demo por queries tipadas de TanStack Query.
+La app comienza sin datos simulados. Los invitados trabajan únicamente con almacenamiento local; los usuarios autenticados consultan y sincronizan con Supabase. Antes de usar las funciones de iglesia se debe aplicar la migración y generar tipos con Supabase CLI.
 
 ## Datos y acceso
 

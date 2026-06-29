@@ -11,7 +11,7 @@ import { useSongStore } from '@/store/song-store';
 import { useAuthStore } from '@/store/auth-store';
 
 export default function HomeScreen() {
-  const songs = useSongStore((state) => state.songs);
+  const songs = useSongStore((state) => state.songs.filter((song) => !song.organizationId));
   const setlists = useSetlistStore((state) => state.setlists);
   const { accessMode, user } = useAuthStore();
   const next = setlists[0];
@@ -39,7 +39,7 @@ export default function HomeScreen() {
         <Pressable onPress={() => router.push('/library')} style={styles.quickCard}><Text style={styles.quickMark}>♯</Text><Text style={styles.quickTitle}>Transportar</Text><Text style={styles.quickCopy}>Cualquier tonalidad</Text></Pressable>
       </View>
 
-      <SectionTitle title={songs.length ? 'Continúa practicando' : 'Tu repertorio'} {...(songs.length ? { action: 'Ver biblioteca' } : {})} />
+      <SectionTitle title={songs.length ? 'Continúa practicando' : 'Tu repertorio'} {...(songs.length ? { action: 'Ver biblioteca', onAction: () => router.push('/library') } : {})} />
       {songs.length ? <View style={styles.list}>{songs.slice(0, 3).map((song) => <SongRow key={song.id} song={song} />)}</View> : <Pressable onPress={() => router.push('/editor')} style={styles.emptyLibrary}><Text style={styles.insightMark}>A</Text><View style={{ flex: 1 }}><Text style={styles.insightTitle}>Crea tu primera canción</Text><Text style={styles.insightCopy}>Puedes escribir letra, acordes o una secuencia para viento.</Text></View><Text style={styles.chevron}>›</Text></Pressable>}
     </Screen>
   );

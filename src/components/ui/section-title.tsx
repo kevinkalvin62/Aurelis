@@ -1,8 +1,8 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors } from '@/constants/design';
 
-export function SectionTitle({ title, action }: { title: string; action?: string }) {
-  return <View style={styles.row}><Text style={styles.title}>{title}</Text>{action ? <Text style={styles.action}>{action}</Text> : null}</View>;
+export function SectionTitle({ title, action, onAction }: { title: string; action?: string; onAction?: () => void }) {
+  return <View style={styles.row}><Text style={styles.title}>{title}</Text>{action ? <Pressable onPress={onAction}><Text style={styles.action}>{action}</Text></Pressable> : null}</View>;
 }
 
 const styles = StyleSheet.create({

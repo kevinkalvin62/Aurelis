@@ -18,6 +18,7 @@ const schema = z.object({
   key: z.string().trim().min(1),
   contentType: z.enum(['lyrics_chords', 'chords_only', 'wind_notes']),
   notation: z.enum(['american', 'latin']),
+  visibility: z.enum(['private', 'public', 'organization']),
   content: z.string().trim().min(4),
 });
 type FormValues = z.infer<typeof schema>;
@@ -48,7 +49,7 @@ const samples: Record<SongContentType, Record<MusicNotation, string>> = {
 };
 
 export default function EditorScreen() {
-  const { id } = useLocalSearchParams<{ id?: string }>();
+  const { id, organizationId } = useLocalSearchParams<{ id?: string; organizationId?: string }>();
   const songs = useSongStore((state) => state.songs);
   const saveSong = useSongStore((state) => state.saveSong);
   const markSyncPending = useSongStore((state) => state.markSyncPending);
@@ -63,6 +64,7 @@ export default function EditorScreen() {
     defaultValues: {
       title: song?.title ?? '', artist: song?.artist ?? '', key: song?.key ?? 'C',
       contentType: song?.contentType ?? 'lyrics_chords', notation: song?.notation ?? 'american',
+      visibility: song?.visibility ?? (organizationId ? 'organization' : 'private'),
       content: song?.content ?? samples.lyrics_chords.american,
     },
   });
@@ -86,10 +88,11 @@ export default function EditorScreen() {
       artist: result.data.artist,
       key: result.data.key,
       bpm: song?.bpm ?? 80,
-      visibility: song?.visibility ?? 'private',
+      visibility: result.data.visibility,
       content: result.data.content,
       contentType: result.data.contentType,
       notation: result.data.notation,
+      ...((organizationId || song?.organizationId) ? { organizationId: organizationId || song!.organizationId, visibility: 'organization' as const } : {}),
       ...(song?.favorite !== undefined ? { favorite: song.favorite } : {}),
     }, song?.id);
     if (accessMode === 'authenticated' && user) {
@@ -135,6 +138,7 @@ export default function EditorScreen() {
         <View style={{ flex: 1 }}><Text style={styles.label}>NOTACIÓN</Text><View style={styles.notationGroup}>{notations.map((option) => <Pressable key={option.value} onPress={() => chooseNotation(option.value)} style={[styles.notation, notation === option.value && styles.notationActive]}><Text style={[styles.notationLabel, notation === option.value && styles.typeTextActive]}>{option.label}</Text><Text style={styles.notationExample}>{option.example}</Text></Pressable>)}</View></View>
         <View style={styles.keyBlock}><Text style={styles.label}>TONALIDAD</Text><Field control={control} name="key" placeholder={notation === 'latin' ? 'DO' : 'C'} centered error={Boolean(errors.key)} /></View>
       </View>
+      {!organizationId && !song?.organizationId ? <><Text style={styles.label}>VISIBILIDAD</Text><Controller control={control} name="visibility" render={({ field: { value, onChange } }) => <View style={styles.visibilityRow}><Pressable onPress={() => onChange('private')} style={[styles.visibility, value === 'private' && styles.visibilityActive]}><Text style={styles.visibilityTitle}>Privada</Text><Text style={styles.visibilityCopy}>Sólo tú</Text></Pressable><Pressable onPress={() => onChange('public')} style={[styles.visibility, value === 'public' && styles.visibilityActive]}><Text style={styles.visibilityTitle}>Pública</Text><Text style={styles.visibilityCopy}>Usuarios con cuenta</Text></Pressable></View>} /></> : null}
 
       <View style={styles.help}><Text style={styles.helpTitle}>{contentType === 'lyrics_chords' ? 'Formato estilo LaCuerda' : contentType === 'chords_only' ? 'Progresión armónica' : 'Secuencia para instrumentos de viento'}</Text><Text style={styles.helpCopy}>{contentType === 'lyrics_chords' ? 'Escribe los acordes en una línea y la letra debajo. Los espacios conservan la alineación exacta.' : contentType === 'chords_only' ? 'Escribe acordes separados por espacios. Puedes usar inversiones, extensiones y compases.' : 'Escribe notas y conserva libremente articulaciones como /, -, . y #. Las palabras no se modifican.'}</Text></View>
       <Controller control={control} name="content" render={({ field: { value, onChange } }) => <TextInput multiline value={value} onChangeText={onChange} autoCapitalize="none" autoCorrect={false} placeholder={samples[contentType][notation]} placeholderTextColor="#625D59" style={[styles.editor, errors.content && styles.error]} textAlignVertical="top" />} />
@@ -154,6 +158,7 @@ const styles = StyleSheet.create({
   input: { height: 50, borderBottomWidth: 1, borderBottomColor: colors.border, color: colors.text, fontSize: 15, marginBottom: 8 }, inputLarge: { height: 68, fontFamily: 'serif', fontSize: 30, fontWeight: '600' }, error: { borderColor: colors.error }, label: { color: colors.textSecondary, fontSize: 9, fontWeight: '900', letterSpacing: 1.4, marginTop: 18, marginBottom: 10 },
   typeGrid: { flexDirection: 'row', gap: 8 }, typeCard: { flex: 1, minHeight: 72, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, borderRadius: radii.md, justifyContent: 'center', alignItems: 'center', padding: 8 }, typeCardActive: { borderColor: colors.accent, backgroundColor: '#281A1D' }, typeMark: { color: colors.textSecondary, fontSize: 18, fontWeight: '700' }, typeLabel: { color: colors.textSecondary, fontSize: 9, fontWeight: '700', marginTop: 7, textAlign: 'center' }, typeTextActive: { color: colors.text },
   optionsRow: { flexDirection: 'row', gap: 16, alignItems: 'flex-end' }, notationGroup: { flexDirection: 'row', padding: 3, borderRadius: radii.sm, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }, notation: { flex: 1, padding: 8, borderRadius: 7, alignItems: 'center' }, notationActive: { backgroundColor: colors.surfaceElevated }, notationLabel: { color: colors.textSecondary, fontSize: 10, fontWeight: '700' }, notationExample: { color: '#77706C', fontSize: 8, marginTop: 3 }, keyBlock: { width: 84 },
+  visibilityRow: { flexDirection: 'row', gap: 8 }, visibility: { flex: 1, padding: 12, borderRadius: radii.sm, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface }, visibilityActive: { borderColor: colors.accent, backgroundColor: '#281A1D' }, visibilityTitle: { color: colors.text, fontSize: 11, fontWeight: '700' }, visibilityCopy: { color: colors.textSecondary, fontSize: 9, marginTop: 3 },
   help: { backgroundColor: '#1D1819', borderRadius: radii.sm, padding: 14, marginTop: 20, marginBottom: 14, borderWidth: 1, borderColor: '#362326' }, helpTitle: { color: colors.text, fontSize: 12, fontWeight: '700' }, helpCopy: { color: colors.textSecondary, fontSize: 11, lineHeight: 17, marginTop: 5 },
   editor: { minHeight: 340, backgroundColor: colors.surface, borderRadius: radii.md, borderWidth: 1, borderColor: colors.border, color: colors.text, padding: 18, fontFamily: 'monospace', fontSize: 15, lineHeight: 27 }, saveMessage: { color: '#D58A96', fontSize: 11, lineHeight: 16, textAlign: 'center', marginTop: 12 }, saveSuccess: { color: '#80B19C' }, counter: { color: colors.textSecondary, fontSize: 9, marginTop: 10, textAlign: 'center' }, deleteButton: { alignItems: 'center', padding: 14, marginTop: 28 }, deleteText: { color: '#D06474', fontSize: 12, fontWeight: '700' },
 });
