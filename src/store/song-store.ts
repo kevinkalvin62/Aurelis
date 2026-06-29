@@ -11,6 +11,7 @@ interface SongState {
   markSyncPending: (id: string) => void;
   markSynced: (id: string, remoteId: string) => void;
   mergeRemoteSongs: (songs: Song[]) => void;
+  deleteSong: (id: string) => void;
 }
 
 function newLocalId(): string {
@@ -38,6 +39,7 @@ export const useSongStore = create<SongState>()(persist(
       const remoteIds = new Set(remoteSongs.map((song) => song.remoteId));
       return { songs: [...remoteSongs, ...state.songs.filter((song) => !song.remoteId || !remoteIds.has(song.remoteId))] };
     }),
+    deleteSong: (id) => set((state) => ({ songs: state.songs.filter((song) => song.id !== id) })),
   }),
   { name: 'aurelis-songs-v2', storage: createJSONStorage(() => appStorage) },
 ));

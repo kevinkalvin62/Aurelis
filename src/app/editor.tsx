@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { colors, radii, spacing } from '@/constants/design';
-import { syncSong } from '@/features/songs/song-sync';
+import { deleteRemoteSong, syncSong } from '@/features/songs/song-sync';
 import { useAuthStore } from '@/store/auth-store';
 import { useSongStore } from '@/store/song-store';
 import { toast } from '@/store/toast-store';
@@ -53,6 +53,7 @@ export default function EditorScreen() {
   const saveSong = useSongStore((state) => state.saveSong);
   const markSyncPending = useSongStore((state) => state.markSyncPending);
   const markSynced = useSongStore((state) => state.markSynced);
+  const deleteSong = useSongStore((state) => state.deleteSong);
   const { accessMode, user } = useAuthStore();
   const song = songs.find((item) => item.id === id);
   const [saved, setSaved] = useState(false);
@@ -106,6 +107,19 @@ export default function EditorScreen() {
     setSaving(false); setSaved(true);
     setTimeout(() => router.replace({ pathname: '/song/[id]', params: { id: localSong.id } }), 650);
   }, () => toast.error('Revisa los campos obligatorios.'));
+  const confirmDelete = () => {
+    if (!song) return;
+    Alert.alert('Eliminar canción', `¿Eliminar “${song.title}”? Esta acción no se puede deshacer.`, [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Eliminar', style: 'destructive', onPress: () => { void (async () => {
+        if (accessMode === 'authenticated' && song.remoteId) {
+          const error = await deleteRemoteSong(song.remoteId);
+          if (error) { toast.error('No fue posible eliminar la canción de Supabase.'); return; }
+        }
+        deleteSong(song.id); toast.success('Canción eliminada.'); router.replace('/library');
+      })(); } },
+    ]);
+  };
 
   return <SafeAreaView style={styles.safe}>
     <View style={styles.nav}><Pressable onPress={() => router.back()}><Text style={styles.cancel}>Cancelar</Text></Pressable><Text style={styles.navTitle}>{song ? 'Editar canción' : 'Nueva canción'}</Text><Button label={saving ? 'Guardando…' : saved ? 'Guardada' : 'Guardar'} compact disabled={saving} onPress={submit} /></View>
@@ -126,6 +140,7 @@ export default function EditorScreen() {
       <Controller control={control} name="content" render={({ field: { value, onChange } }) => <TextInput multiline value={value} onChangeText={onChange} autoCapitalize="none" autoCorrect={false} placeholder={samples[contentType][notation]} placeholderTextColor="#625D59" style={[styles.editor, errors.content && styles.error]} textAlignVertical="top" />} />
       {saveMessage ? <Text style={[styles.saveMessage, saved && styles.saveSuccess]}>{saveMessage}</Text> : null}
       <Text style={styles.counter}>Texto plano compatible · espacios preservados · transporte automático</Text>
+      {song ? <Pressable onPress={confirmDelete} style={styles.deleteButton}><Text style={styles.deleteText}>Eliminar canción</Text></Pressable> : null}
     </ScrollView>
   </SafeAreaView>;
 }
@@ -140,5 +155,5 @@ const styles = StyleSheet.create({
   typeGrid: { flexDirection: 'row', gap: 8 }, typeCard: { flex: 1, minHeight: 72, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, borderRadius: radii.md, justifyContent: 'center', alignItems: 'center', padding: 8 }, typeCardActive: { borderColor: colors.accent, backgroundColor: '#281A1D' }, typeMark: { color: colors.textSecondary, fontSize: 18, fontWeight: '700' }, typeLabel: { color: colors.textSecondary, fontSize: 9, fontWeight: '700', marginTop: 7, textAlign: 'center' }, typeTextActive: { color: colors.text },
   optionsRow: { flexDirection: 'row', gap: 16, alignItems: 'flex-end' }, notationGroup: { flexDirection: 'row', padding: 3, borderRadius: radii.sm, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }, notation: { flex: 1, padding: 8, borderRadius: 7, alignItems: 'center' }, notationActive: { backgroundColor: colors.surfaceElevated }, notationLabel: { color: colors.textSecondary, fontSize: 10, fontWeight: '700' }, notationExample: { color: '#77706C', fontSize: 8, marginTop: 3 }, keyBlock: { width: 84 },
   help: { backgroundColor: '#1D1819', borderRadius: radii.sm, padding: 14, marginTop: 20, marginBottom: 14, borderWidth: 1, borderColor: '#362326' }, helpTitle: { color: colors.text, fontSize: 12, fontWeight: '700' }, helpCopy: { color: colors.textSecondary, fontSize: 11, lineHeight: 17, marginTop: 5 },
-  editor: { minHeight: 340, backgroundColor: colors.surface, borderRadius: radii.md, borderWidth: 1, borderColor: colors.border, color: colors.text, padding: 18, fontFamily: 'monospace', fontSize: 15, lineHeight: 27 }, saveMessage: { color: '#D58A96', fontSize: 11, lineHeight: 16, textAlign: 'center', marginTop: 12 }, saveSuccess: { color: '#80B19C' }, counter: { color: colors.textSecondary, fontSize: 9, marginTop: 10, textAlign: 'center' },
+  editor: { minHeight: 340, backgroundColor: colors.surface, borderRadius: radii.md, borderWidth: 1, borderColor: colors.border, color: colors.text, padding: 18, fontFamily: 'monospace', fontSize: 15, lineHeight: 27 }, saveMessage: { color: '#D58A96', fontSize: 11, lineHeight: 16, textAlign: 'center', marginTop: 12 }, saveSuccess: { color: '#80B19C' }, counter: { color: colors.textSecondary, fontSize: 9, marginTop: 10, textAlign: 'center' }, deleteButton: { alignItems: 'center', padding: 14, marginTop: 28 }, deleteText: { color: '#D06474', fontSize: 12, fontWeight: '700' },
 });

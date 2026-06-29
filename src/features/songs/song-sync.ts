@@ -6,9 +6,10 @@ interface RemoteSongRow {
   id: string;
   title: string;
   artist: string;
-  original_key: string;
+  original_key: string | null;
+  current_key: string | null;
   bpm: number | null;
-  content_plain: string;
+  content_raw: string;
   content_type: SongContentType;
   notation: MusicNotation;
   visibility: Visibility;
@@ -17,17 +18,18 @@ interface RemoteSongRow {
 
 function payloadFor(song: Song, userId: string) {
   return {
-    owner_id: userId,
-    organization_id: null,
+    owner_user_id: userId,
+    organization_id: song.organizationId ?? null,
     title: song.title,
     artist: song.artist,
     original_key: song.key,
     bpm: song.bpm,
-    content_plain: song.content,
+    current_key: song.currentKey ?? song.key,
+    content_raw: song.content,
     content_structured: { version: 1, type: song.contentType, notation: song.notation },
     content_type: song.contentType,
     notation: song.notation,
-    visibility: 'private' as const,
+    visibility: song.organizationId ? 'organization' as const : 'private' as const,
     updated_at: new Date().toISOString(),
   };
 }
@@ -53,16 +55,18 @@ export async function syncLocalSongs(userId: string): Promise<void> {
 }
 
 export async function pullRemoteSongs(userId: string): Promise<void> {
-  const { data, error } = await supabase.from('songs').select('id,title,artist,original_key,bpm,content_plain,content_type,notation,visibility,updated_at').eq('owner_id', userId).order('updated_at', { ascending: false });
+  const { data, error } = await supabase.from('songs').select('id,title,artist,original_key,current_key,bpm,content_raw,content_type,notation,visibility,updated_at').eq('owner_user_id', userId).is('organization_id', null).order('updated_at', { ascending: false });
   if (error || !data) return;
   const remoteSongs = (data as RemoteSongRow[]).map((row): Song => ({
     id: `remote-${row.id}`,
     remoteId: row.id,
     title: row.title,
     artist: row.artist,
-    key: row.original_key,
+    key: row.original_key ?? 'C',
+    currentKey: row.current_key ?? row.original_key ?? 'C',
     bpm: row.bpm ?? 80,
-    content: row.content_plain,
+    content: row.content_raw,
+    ownerUserId: userId,
     contentType: row.content_type,
     notation: row.notation,
     visibility: row.visibility,
@@ -70,4 +74,9 @@ export async function pullRemoteSongs(userId: string): Promise<void> {
     syncStatus: 'synced',
   }));
   useSongStore.getState().mergeRemoteSongs(remoteSongs);
+}
+
+export async function deleteRemoteSong(remoteId: string): Promise<string | null> {
+  const { error } = await supabase.from('songs').delete().eq('id', remoteId);
+  return error?.message ?? null;
 }
