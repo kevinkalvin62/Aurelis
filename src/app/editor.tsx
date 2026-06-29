@@ -9,6 +9,7 @@ import { colors, radii, spacing } from '@/constants/design';
 import { syncSong } from '@/features/songs/song-sync';
 import { useAuthStore } from '@/store/auth-store';
 import { useSongStore } from '@/store/song-store';
+import { toast } from '@/store/toast-store';
 import type { MusicNotation, SongContentType } from '@/types/domain';
 
 const schema = z.object({
@@ -77,7 +78,7 @@ export default function EditorScreen() {
   };
   const submit = handleSubmit(async (values) => {
     const result = schema.safeParse(values);
-    if (!result.success) { setSaveMessage('Completa título, artista, tono y contenido antes de guardar.'); return; }
+    if (!result.success) { toast.error('Completa título, artista, tono y contenido antes de guardar.'); return; }
     setSaving(true); setSaveMessage('');
     const localSong = saveSong({
       title: result.data.title,
@@ -95,16 +96,16 @@ export default function EditorScreen() {
       const synced = await syncSong(localSong, user.id);
       if (synced.remoteId) {
         markSynced(localSong.id, synced.remoteId);
-        setSaveMessage('Guardada y sincronizada.');
+        setSaveMessage('Guardada y sincronizada.'); toast.success('Canción guardada y sincronizada.');
       } else {
-        setSaveMessage('Guardada en este dispositivo. La sincronización se reintentará después.');
+        setSaveMessage('Guardada en este dispositivo. La sincronización se reintentará después.'); toast.warning('Guardada localmente; la sincronización queda pendiente.');
       }
     } else {
-      setSaveMessage('Guardada en este dispositivo.');
+      setSaveMessage('Guardada en este dispositivo.'); toast.success('Canción guardada en este dispositivo.');
     }
     setSaving(false); setSaved(true);
     setTimeout(() => router.replace({ pathname: '/song/[id]', params: { id: localSong.id } }), 650);
-  }, () => setSaveMessage('Revisa los campos obligatorios.'));
+  }, () => toast.error('Revisa los campos obligatorios.'));
 
   return <SafeAreaView style={styles.safe}>
     <View style={styles.nav}><Pressable onPress={() => router.back()}><Text style={styles.cancel}>Cancelar</Text></Pressable><Text style={styles.navTitle}>{song ? 'Editar canción' : 'Nueva canción'}</Text><Button label={saving ? 'Guardando…' : saved ? 'Guardada' : 'Guardar'} compact disabled={saving} onPress={submit} /></View>

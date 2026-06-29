@@ -12,7 +12,7 @@ export default function SetlistsScreen() {
   const setlists = useSetlistStore((state) => state.setlists);
   const createFromMessage = useSetlistStore((state) => state.createFromMessage);
   const [importing, setImporting] = useState(false);
-  const [message, setMessage] = useState('Lista Domingo AM\nPaloma Blanca\nHay Libertad\nDigno y Santo');
+  const [message, setMessage] = useState('');
   const detected = message.split('\n').map((line) => line.trim()).filter(Boolean);
   const createSetlist = () => {
     if (detected.length === 0) return;
@@ -30,9 +30,9 @@ export default function SetlistsScreen() {
         <View style={{ flex: 1 }}><Text style={styles.importTitle}>Importar desde un mensaje</Text><Text style={styles.importCopy}>Pega una lista de WhatsApp y Aurelis hará el resto.</Text></View>
         <Text style={styles.chevron}>{importing ? '⌃' : '›'}</Text>
       </Pressable>
-      {importing ? <View style={styles.importPanel}><TextInput multiline value={message} onChangeText={setMessage} style={styles.messageInput} placeholderTextColor={colors.textSecondary} /><Text style={styles.detected}>{Math.max(0, detected.length - 1)} canciones detectadas</Text><Button label="Crear setlist" disabled={detected.length === 0} onPress={createSetlist} /></View> : null}
+      {importing ? <View style={styles.importPanel}><TextInput multiline value={message} onChangeText={setMessage} style={styles.messageInput} placeholder="Título del programa\nCanción 1\nCanción 2" placeholderTextColor={colors.textSecondary} /><Text style={styles.detected}>{Math.max(0, detected.length - 1)} canciones detectadas</Text><Button label="Crear setlist" disabled={detected.length === 0} onPress={createSetlist} /></View> : null}
 
-      <Text style={styles.label}>PRÓXIMOS</Text>
+      <Text style={styles.label}>TUS PROGRAMAS</Text>
       {setlists.map((setlist, index) => (
         <Pressable key={setlist.id} disabled={!setlist.songIds[0]} onPress={() => setlist.songIds[0] && router.push({ pathname: '/song/[id]', params: { id: setlist.songIds[0] } })} style={styles.card}>
           <View style={[styles.date, index > 0 && { backgroundColor: colors.surfaceElevated }]}><Text style={styles.dateDay}>{setlist.dateLabel.split(' · ')[0]}</Text><Text style={styles.dateNumber}>{setlist.dateLabel === 'SIN FECHA' ? '—' : index === 0 ? '05' : '10'}</Text><Text style={styles.dateMonth}>{setlist.dateLabel === 'SIN FECHA' ? '' : 'JUL'}</Text></View>
@@ -40,8 +40,7 @@ export default function SetlistsScreen() {
           <Text style={styles.chevron}>›</Text>
         </Pressable>
       ))}
-      <Text style={styles.label}>BORRADORES</Text>
-      <View style={styles.draft}><Text style={styles.draftMark}>◎</Text><View style={{ flex: 1 }}><Text style={styles.title}>Ensayo general</Text><Text style={styles.meta}>{songs.length} canciones · sin fecha</Text></View><Text style={styles.chevron}>›</Text></View>
+      {setlists.length === 0 ? <View style={styles.draft}><Text style={styles.draftMark}>◎</Text><View style={{ flex: 1 }}><Text style={styles.title}>Aún no tienes programas</Text><Text style={styles.meta}>{songs.length ? 'Importa una lista o créala manualmente.' : 'Primero crea canciones en tu biblioteca.'}</Text></View></View> : null}
     </Screen>
   );
 }

@@ -17,6 +17,43 @@ export interface Song {
   favorite?: boolean;
   remoteId?: string;
   syncStatus?: 'local' | 'pending' | 'synced';
+  ownerUserId?: string;
+  organizationId?: string;
+  currentKey?: string;
+}
+
+export interface Profile {
+  id: string;
+  userId: string;
+  displayName: string;
+  username?: string;
+}
+
+export interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+  type: 'church';
+  ownerId: string;
+  role?: OrganizationRole;
+}
+
+export interface OrganizationMember {
+  id: string;
+  organizationId: string;
+  userId: string;
+  role: OrganizationRole;
+  displayName: string;
+  email?: string;
+  instruments: MemberInstrument[];
+}
+
+export interface MemberInstrument {
+  id: string;
+  organizationMemberId: string;
+  instrumentName: string;
+  transpositionKey?: string;
+  isPrimary: boolean;
 }
 
 export interface Setlist {
@@ -27,6 +64,32 @@ export interface Setlist {
   location: string;
   songIds: string[];
   peopleCount: number;
+  organizationId?: string;
+  serviceDate?: string;
+  notes?: string;
+  sourceText?: string;
+  createdBy?: string;
+  items?: SetlistItem[];
+  syncStatus?: 'local' | 'pending' | 'synced';
+}
+
+export interface SetlistItem {
+  id: string;
+  setlistId: string;
+  songId: string;
+  position: number;
+  selectedKey?: string;
+  notes?: string;
+}
+
+export interface InstrumentMaterial {
+  id: string;
+  songId: string;
+  organizationId?: string;
+  instrumentName: string;
+  key?: string;
+  contentRaw?: string;
+  notes?: string;
 }
 
 export interface Instrument {

@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { setlists as demoSetlists } from '@/data/demo';
 import { appStorage } from '@/lib/storage';
 import type { Setlist } from '@/types/domain';
 
@@ -11,7 +10,7 @@ interface SetlistState {
 
 export const useSetlistStore = create<SetlistState>()(persist(
   (set) => ({
-    setlists: demoSetlists,
+    setlists: [],
     createFromMessage: (lines, songIds) => {
       const created: Setlist = {
         id: `local-setlist-${Date.now()}`,
@@ -26,5 +25,5 @@ export const useSetlistStore = create<SetlistState>()(persist(
       return created;
     },
   }),
-  { name: 'aurelis-setlists-v1', storage: createJSONStorage(() => appStorage) },
+  { name: 'aurelis-setlists-v2', storage: createJSONStorage(() => appStorage) },
 ));

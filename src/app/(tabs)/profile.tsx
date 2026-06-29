@@ -2,20 +2,25 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { Screen } from '@/components/ui/screen';
 import { colors, radii, spacing } from '@/constants/design';
-import { instruments } from '@/data/demo';
 import { useAuthStore } from '@/store/auth-store';
+import { toast } from '@/store/toast-store';
 
 export default function ProfileScreen() {
   const { accessMode, user } = useAuthStore();
+  const displayName = accessMode === 'guest' ? 'Invitado' : user?.name || 'Músico';
+  const openOrganizations = () => {
+    if (accessMode !== 'authenticated') { toast.warning('Necesitas iniciar sesión para usar esta función.'); router.push('/auth'); return; }
+    toast.info('Cargando tus iglesias…');
+  };
   return (
     <Screen eyebrow="CUENTA Y EQUIPO" title="Perfil">
-      <View style={styles.identity}><View style={styles.avatar}><Text style={styles.avatarText}>KE</Text></View><View><Text style={styles.name}>{user?.name ?? 'Kevin'}</Text><Text style={styles.email}>{accessMode === 'authenticated' ? user?.email : 'Modo invitado · datos locales'}</Text><View style={styles.plan}><Text style={styles.planText}>{accessMode === 'authenticated' ? 'SINCRONIZADO' : 'INVITADO'}</Text></View></View></View>
-      <Text style={styles.label}>ORGANIZACIÓN ACTIVA</Text>
-      <View style={styles.org}><View style={styles.orgMark}><Text style={styles.orgLetter}>A</Text></View><View style={{ flex: 1 }}><Text style={styles.rowTitle}>Comunidad Aurelis</Text><Text style={styles.rowCopy}>Owner · 12 miembros</Text></View><Text style={styles.chevron}>›</Text></View>
+      <View style={styles.identity}><View style={styles.avatar}><Text style={styles.avatarText}>{accessMode === 'guest' ? 'IN' : displayName.slice(0, 2).toUpperCase()}</Text></View><View><Text style={styles.name}>{displayName}</Text><Text style={styles.email}>{accessMode === 'authenticated' ? user?.email : 'Modo invitado · datos locales'}</Text><View style={styles.plan}><Text style={styles.planText}>{accessMode === 'authenticated' ? 'SINCRONIZADO' : 'INVITADO'}</Text></View></View></View>
+      <Text style={styles.label}>IGLESIAS Y ORGANIZACIONES</Text>
+      <Pressable onPress={openOrganizations} style={styles.org}><View style={styles.orgMark}><Text style={styles.orgLetter}>A</Text></View><View style={{ flex: 1 }}><Text style={styles.rowTitle}>{accessMode === 'authenticated' ? 'Mis iglesias' : 'Función disponible con cuenta'}</Text><Text style={styles.rowCopy}>{accessMode === 'authenticated' ? 'Crea o administra una organización' : 'Inicia sesión para crear o unirte a una iglesia'}</Text></View><Text style={styles.chevron}>›</Text></Pressable>
       <Text style={styles.label}>MIS INSTRUMENTOS</Text>
-      <View style={styles.group}>{instruments.map((instrument) => <View key={instrument.id} style={styles.row}><View style={{ flex: 1 }}><Text style={styles.rowTitle}>{instrument.name}</Text><Text style={styles.rowCopy}>{instrument.family} · {instrument.transposition === 0 ? 'Tono de concierto' : `+${instrument.transposition} semitonos`}</Text></View>{instrument.primary ? <Text style={styles.primary}>PRINCIPAL</Text> : null}<Text style={styles.chevron}>›</Text></View>)}</View>
+      <View style={styles.group}><View style={styles.row}><View style={{ flex: 1 }}><Text style={styles.rowTitle}>Sin instrumentos asignados</Text><Text style={styles.rowCopy}>{accessMode === 'authenticated' ? 'Se mostrarán según cada iglesia' : 'Los instrumentos de iglesia requieren una cuenta'}</Text></View></View></View>
       <Text style={styles.label}>PREFERENCIAS</Text>
-      <View style={styles.group}>{['Apariencia · Oscuro', 'Notación · Latina', 'Sincronización · Activa', 'Seguridad y privacidad'].map((item) => <Pressable key={item} style={styles.row}><Text style={[styles.rowTitle, { flex: 1 }]}>{item}</Text><Text style={styles.chevron}>›</Text></Pressable>)}</View>
+      <View style={styles.group}><View style={styles.row}><Text style={[styles.rowTitle, { flex: 1 }]}>Notación predeterminada</Text><Text style={styles.rowCopy}>Americana</Text></View><View style={styles.row}><Text style={[styles.rowTitle, { flex: 1 }]}>Almacenamiento</Text><Text style={styles.rowCopy}>{accessMode === 'authenticated' ? 'Local + Supabase' : 'Sólo local'}</Text></View></View>
       <Pressable onPress={() => router.push('/auth')} style={styles.signOut}><Text style={styles.signOutText}>{accessMode === 'authenticated' ? 'Gestionar cuenta' : 'Crear cuenta o iniciar sesión'}</Text></Pressable>
     </Screen>
   );

@@ -7,6 +7,7 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { colors } from '@/constants/design';
+import { ToastHost } from '@/components/ui/toast-host';
 import { pullRemoteSongs, syncLocalSongs } from '@/features/songs/song-sync';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/auth-store';
@@ -19,6 +20,7 @@ export default function RootLayout() {
         <QueryClientProvider client={queryClient}>
           <StatusBar style="light" />
           <AppGate />
+          <ToastHost />
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
@@ -39,7 +41,7 @@ function AppGate() {
       }
       const email = user.email ?? '';
       const metadataName = typeof user.user_metadata?.display_name === 'string' ? user.user_metadata.display_name : undefined;
-      setAuthenticated({ id: user.id, email, name: metadataName || email.split('@')[0] || 'Kevin' });
+      setAuthenticated({ id: user.id, email, name: metadataName || email.split('@')[0] || 'Músico' });
       if (syncedUser.current !== user.id) {
         syncedUser.current = user.id;
         await syncLocalSongs(user.id);

@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { songs as demoSongs } from '@/data/demo';
 import { appStorage } from '@/lib/storage';
 import type { Song } from '@/types/domain';
 
@@ -20,7 +19,7 @@ function newLocalId(): string {
 
 export const useSongStore = create<SongState>()(persist(
   (set, get) => ({
-    songs: demoSongs,
+    songs: [],
     saveSong: (draft, existingId) => {
       const previous = existingId ? get().songs.find((song) => song.id === existingId) : undefined;
       const saved: Song = {
@@ -40,5 +39,5 @@ export const useSongStore = create<SongState>()(persist(
       return { songs: [...remoteSongs, ...state.songs.filter((song) => !song.remoteId || !remoteIds.has(song.remoteId))] };
     }),
   }),
-  { name: 'aurelis-songs-v1', storage: createJSONStorage(() => appStorage) },
+  { name: 'aurelis-songs-v2', storage: createJSONStorage(() => appStorage) },
 ));

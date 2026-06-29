@@ -8,14 +8,19 @@ import { SongRow } from '@/components/song-row';
 import { colors, radii, spacing } from '@/constants/design';
 import { useSetlistStore } from '@/store/setlist-store';
 import { useSongStore } from '@/store/song-store';
+import { useAuthStore } from '@/store/auth-store';
 
 export default function HomeScreen() {
   const songs = useSongStore((state) => state.songs);
   const setlists = useSetlistStore((state) => state.setlists);
-  const next = setlists[0]!;
+  const { accessMode, user } = useAuthStore();
+  const next = setlists[0];
+  const displayName = accessMode === 'guest' ? 'Invitado' : user?.name || 'Músico';
+  const initials = accessMode === 'guest' ? 'IN' : displayName.slice(0, 2).toUpperCase();
+  const dateLabel = new Intl.DateTimeFormat('es-MX', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date()).toUpperCase();
   return (
-    <Screen eyebrow="LUNES · 29 JUNIO" title="Buenas tardes, Kevin" subtitle="Tu música, ordenada y lista para tocar." right={<View style={styles.avatar}><Text style={styles.avatarText}>KE</Text></View>}>
-      <Pressable onPress={() => router.push('/setlists')} style={({ pressed }) => pressed && { opacity: 0.85 }}>
+    <Screen eyebrow={dateLabel} title={`Buenas tardes, ${displayName}`} subtitle="Tu música, ordenada y lista para tocar." right={<View style={styles.avatar}><Text style={styles.avatarText}>{initials}</Text></View>}>
+      {next ? <Pressable onPress={() => router.push('/setlists')} style={({ pressed }) => pressed && { opacity: 0.85 }}>
         <LinearGradient colors={['#35151B', '#1B1717']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
           <View style={styles.heroTop}><Text style={styles.heroEyebrow}>PRÓXIMO SERVICIO</Text><View style={styles.liveDot} /></View>
           <Text style={styles.heroTitle}>{next.title}</Text>
@@ -27,16 +32,15 @@ export default function HomeScreen() {
             <Button label="Abrir setlist  ›" compact style={{ marginLeft: 'auto' }} />
           </View>
         </LinearGradient>
-      </Pressable>
+      </Pressable> : <Pressable onPress={() => router.push('/setlists')} style={styles.emptyHero}><Text style={styles.heroEyebrow}>TU PRÓXIMO PROGRAMA</Text><Text style={styles.emptyHeroTitle}>Aún no tienes programas</Text><Text style={styles.emptyHeroCopy}>Crea una lista local o inicia sesión para trabajar con tu iglesia.</Text></Pressable>}
 
       <View style={styles.quickRow}>
         <Pressable onPress={() => router.push('/editor')} style={styles.quickCard}><Text style={styles.quickMark}>＋</Text><Text style={styles.quickTitle}>Nueva canción</Text><Text style={styles.quickCopy}>Letra y acordes</Text></Pressable>
         <Pressable onPress={() => router.push('/library')} style={styles.quickCard}><Text style={styles.quickMark}>♯</Text><Text style={styles.quickTitle}>Transportar</Text><Text style={styles.quickCopy}>Cualquier tonalidad</Text></Pressable>
       </View>
 
-      <SectionTitle title="Continúa practicando" action="Ver biblioteca" />
-      <View style={styles.list}>{songs.slice(0, 3).map((song) => <SongRow key={song.id} song={song} />)}</View>
-      <View style={styles.insight}><Text style={styles.insightMark}>A</Text><View style={{ flex: 1 }}><Text style={styles.insightTitle}>Tu repertorio está al día</Text><Text style={styles.insightCopy}>4 canciones actualizadas esta semana</Text></View><Text style={styles.chevron}>›</Text></View>
+      <SectionTitle title={songs.length ? 'Continúa practicando' : 'Tu repertorio'} {...(songs.length ? { action: 'Ver biblioteca' } : {})} />
+      {songs.length ? <View style={styles.list}>{songs.slice(0, 3).map((song) => <SongRow key={song.id} song={song} />)}</View> : <Pressable onPress={() => router.push('/editor')} style={styles.emptyLibrary}><Text style={styles.insightMark}>A</Text><View style={{ flex: 1 }}><Text style={styles.insightTitle}>Crea tu primera canción</Text><Text style={styles.insightCopy}>Puedes escribir letra, acordes o una secuencia para viento.</Text></View><Text style={styles.chevron}>›</Text></Pressable>}
     </Screen>
   );
 }
@@ -45,6 +49,7 @@ const styles = StyleSheet.create({
   avatar: { width: 42, height: 42, borderRadius: 21, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: colors.white14 },
   avatarText: { color: colors.text, fontWeight: '800', fontSize: 12 },
   hero: { borderRadius: radii.lg, padding: spacing.lg, borderWidth: 1, borderColor: '#51252D', marginBottom: spacing.md },
+  emptyHero: { borderRadius: radii.lg, padding: spacing.lg, borderWidth: 1, borderColor: '#51252D', backgroundColor: '#1D1718', marginBottom: spacing.md }, emptyHeroTitle: { color: colors.text, fontFamily: 'serif', fontSize: 23, fontWeight: '600', marginTop: 12 }, emptyHeroCopy: { color: colors.textSecondary, fontSize: 12, lineHeight: 18, marginTop: 8 },
   heroTop: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 18 },
   heroEyebrow: { color: '#D38B96', fontSize: 10, fontWeight: '800', letterSpacing: 1.8 },
   liveDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: '#D38B96' },
@@ -61,6 +66,7 @@ const styles = StyleSheet.create({
   quickCopy: { color: colors.textSecondary, fontSize: 11, marginTop: 4 },
   list: { backgroundColor: colors.surface, borderRadius: radii.md, paddingHorizontal: spacing.md, marginBottom: spacing.lg, borderWidth: 1, borderColor: colors.border },
   insight: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16, borderRadius: radii.md, backgroundColor: '#181D1B', borderWidth: 1, borderColor: '#26352F' },
+  emptyLibrary: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 18, borderRadius: radii.md, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
   insightMark: { color: '#80B19C', fontFamily: 'serif', fontSize: 22 },
   insightTitle: { color: colors.text, fontSize: 13, fontWeight: '700' },
   insightCopy: { color: colors.textSecondary, fontSize: 11, marginTop: 3 },
