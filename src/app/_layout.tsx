@@ -60,7 +60,7 @@ function AppGate() {
 
   useEffect(() => {
     if (!hydrated || !sessionChecked) return;
-    if (!accessMode && segments[0] !== 'auth') router.replace('/auth');
+    if (!accessMode && segments[0] !== 'auth' && segments[0] !== 'reset-password') router.replace('/auth');
   }, [accessMode, hydrated, segments, sessionChecked]);
 
   if (!hydrated || !sessionChecked) return <View style={styles.loading}><ActivityIndicator color={colors.accent} /></View>;
@@ -69,6 +69,12 @@ function AppGate() {
     <Stack.Screen name="song/[id]" />
     <Stack.Screen name="editor" options={{ presentation: 'modal' }} />
     <Stack.Screen name="auth" options={{ animation: 'fade' }} />
+    <Stack.Screen name="reset-password" options={{ animation: 'fade' }} />
+    <Stack.Screen name="organization/create" options={{ presentation: 'modal' }} />
+    <Stack.Screen name="organization/[id]" />
+    <Stack.Screen name="setlist/create" options={{ presentation: 'modal' }} />
+    <Stack.Screen name="setlist/[id]" />
+    <Stack.Screen name="material/editor" options={{ presentation: 'modal' }} />
   </Stack>;
 }
 

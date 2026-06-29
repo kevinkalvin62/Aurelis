@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { CormorantGaramond_600SemiBold_Italic, useFonts } from '@expo-google-fonts/cormorant-garamond';
 import { Controller, useForm } from 'react-hook-form';
 import { router } from 'expo-router';
+import * as Linking from 'expo-linking';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui/button';
@@ -57,7 +58,7 @@ export default function AuthScreen() {
   const resetPassword = async () => {
     const email = getValues('email').trim();
     if (!email.includes('@')) { toast.warning('Escribe primero tu correo electrónico.'); return; }
-    setLoading(true); const { error } = await supabase.auth.resetPasswordForEmail(email); setLoading(false);
+    setLoading(true); const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: Linking.createURL('/reset-password') }); setLoading(false);
     const text = error ? friendlyAuthError(error.message) : 'Te enviamos un enlace para recuperar tu contraseña.';
     setSuccess(!error); setMessage(text); error ? toast.error(text) : toast.success(text);
   };
