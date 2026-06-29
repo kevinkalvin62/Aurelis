@@ -9,6 +9,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { colors } from '@/constants/design';
 import { ToastHost } from '@/components/ui/toast-host';
 import { pullRemoteSongs, syncLocalSongs } from '@/features/songs/song-sync';
+import { fetchProfile } from '@/features/auth/profile-service';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/auth-store';
 
@@ -40,8 +41,9 @@ function AppGate() {
         return;
       }
       const email = user.email ?? '';
+      const profile = await fetchProfile(user.id);
       const metadataName = typeof user.user_metadata?.display_name === 'string' ? user.user_metadata.display_name : undefined;
-      setAuthenticated({ id: user.id, email, name: metadataName || email.split('@')[0] || 'Músico' });
+      setAuthenticated({ id: user.id, email, name: profile?.displayName || metadataName || email.split('@')[0] || 'Músico' });
       if (syncedUser.current !== user.id) {
         syncedUser.current = user.id;
         await syncLocalSongs(user.id);
