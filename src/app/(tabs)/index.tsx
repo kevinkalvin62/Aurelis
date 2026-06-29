@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -11,7 +12,8 @@ import { useSongStore } from '@/store/song-store';
 import { useAuthStore } from '@/store/auth-store';
 
 export default function HomeScreen() {
-  const songs = useSongStore((state) => state.songs.filter((song) => !song.organizationId));
+  const allSongs = useSongStore((state) => state.songs);
+  const songs = useMemo(() => allSongs.filter((song) => !song.organizationId), [allSongs]);
   const setlists = useSetlistStore((state) => state.setlists);
   const { accessMode, user } = useAuthStore();
   const next = setlists[0];

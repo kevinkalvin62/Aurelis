@@ -19,7 +19,8 @@ type Mode = 'manual' | 'import';
 export default function CreateSetlistScreen() {
   const { organizationId, mode: initialMode } = useLocalSearchParams<{ organizationId?: string; mode?: Mode }>();
   const accessMode = useAuthStore((state) => state.accessMode); const queryClient = useQueryClient();
-  const localSongs = useSongStore((state) => state.songs).filter((song) => !song.organizationId);
+  const allLocalSongs = useSongStore((state) => state.songs);
+  const localSongs = useMemo(() => allLocalSongs.filter((song) => !song.organizationId), [allLocalSongs]);
   const createLocal = useSetlistStore((state) => state.createSetlist);
   const { data: organizationSongs = [] } = useQuery({ queryKey: ['organization-songs', organizationId], queryFn: () => listOrganizationSongs(organizationId!), enabled: Boolean(organizationId && accessMode === 'authenticated') });
   const songs = organizationId ? organizationSongs : localSongs;

@@ -51,6 +51,7 @@ export interface OrganizationMember {
 export interface MemberInstrument {
   id: string;
   organizationMemberId: string;
+  instrumentId: string;
   instrumentName: string;
   transpositionKey?: string;
   isPrimary: boolean;
@@ -85,7 +86,7 @@ export interface SetlistItem {
 export interface InstrumentMaterial {
   id: string;
   songId: string;
-  organizationId?: string;
+  instrumentId: string;
   instrumentName: string;
   key?: string;
   contentRaw?: string;
@@ -95,7 +96,5 @@ export interface InstrumentMaterial {
 export interface Instrument {
   id: string;
   name: string;
-  family: string;
-  transposition: number;
-  primary?: boolean;
+  transpositionKey?: string;
 }

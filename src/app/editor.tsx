@@ -100,7 +100,11 @@ export default function EditorScreen() {
       const synced = await syncSong(localSong, user.id);
       if (synced.remoteId) {
         markSynced(localSong.id, synced.remoteId);
-        setSaveMessage('Guardada y sincronizada.'); toast.success('Canción guardada y sincronizada.');
+        if (synced.error) {
+          setSaveMessage('Canción sincronizada; no fue posible guardar su historial de versión.'); toast.warning('Canción sincronizada sin historial de versión.');
+        } else {
+          setSaveMessage('Guardada y sincronizada.'); toast.success('Canción guardada y sincronizada.');
+        }
       } else {
         setSaveMessage('Guardada en este dispositivo. La sincronización se reintentará después.'); toast.warning('Guardada localmente; la sincronización queda pendiente.');
       }
