@@ -2,6 +2,7 @@ export type Visibility = 'private' | 'organization' | 'public';
 export type OrganizationRole = 'owner' | 'admin' | 'director' | 'musician' | 'guest';
 export type SongContentType = 'lyrics_chords' | 'chords_only' | 'wind_notes';
 export type MusicNotation = 'american' | 'latin';
+export type OrganizationType = 'church' | 'band' | 'school' | 'choir' | 'group' | 'personal';
 
 export interface Song {
   id: string;
@@ -33,7 +34,7 @@ export interface Organization {
   id: string;
   name: string;
   slug: string;
-  type: 'church';
+  type: OrganizationType;
   ownerId: string;
   role?: OrganizationRole;
 }
@@ -77,8 +78,16 @@ export interface Setlist {
 export interface SetlistItem {
   id: string;
   setlistId: string;
-  songId: string;
+  titleSnapshot: string;
+  songId?: string;
   position: number;
+  selectedKey?: string;
+  notes?: string;
+}
+
+export interface SetlistDraftItem {
+  titleSnapshot: string;
+  songId?: string;
   selectedKey?: string;
   notes?: string;
 }

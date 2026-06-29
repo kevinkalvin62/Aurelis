@@ -3,18 +3,18 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, radii, spacing } from '@/constants/design';
 import type { Song } from '@/types/domain';
 
-export function SongRow({ song, index }: { song: Song; index?: number }) {
+export function SongRow({ song, index, semitones = 0 }: { song: Song; index?: number; semitones?: number }) {
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={`Abrir ${song.title}`}
-      onPress={() => router.push({ pathname: '/song/[id]', params: { id: song.id } })}
+      onPress={() => router.push({ pathname: '/song/[id]', params: { id: song.id, ...(semitones ? { transpose: String(semitones) } : {}) } })}
       style={({ pressed }) => [styles.row, pressed && styles.pressed]}
     >
       <View style={styles.indexBox}><Text style={styles.index}>{index ? String(index).padStart(2, '0') : '♪'}</Text></View>
       <View style={styles.main}>
         <Text numberOfLines={1} style={styles.title}>{song.title}</Text>
-        <Text numberOfLines={1} style={styles.meta}>{song.artist || 'Sin autor'} · {song.bpm} BPM · {song.organizationId ? 'Iglesia' : song.visibility === 'public' ? 'Pública' : 'Personal'}</Text>
+        <Text numberOfLines={1} style={styles.meta}>{song.artist || 'Sin autor'} · {song.bpm} BPM · {song.organizationId ? 'Organización' : song.visibility === 'public' ? 'Pública' : 'Personal'}</Text>
       </View>
       <View style={styles.key}><Text style={styles.keyText}>{song.key}</Text></View>
       <Text style={styles.chevron}>›</Text>

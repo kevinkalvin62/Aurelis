@@ -8,14 +8,14 @@ import { usePlayerStore } from '@/store/player-store';
 import { useSongStore } from '@/store/song-store';
 
 export default function SongScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, transpose } = useLocalSearchParams<{ id: string; transpose?: string }>();
   const songs = useSongStore((state) => state.songs);
   const song = songs.find((item) => item.id === id);
   const { semitones, setSemitones, fontScale, changeFontScale, presentationMode, togglePresentationMode } = usePlayerStore();
   const content = useMemo(() => song ? transposeContent(song.content, semitones, song.contentType, song.notation) : '', [semitones, song]);
   const displayLines = useMemo(() => song ? getDisplayLines(content, song.contentType, song.notation) : [], [content, song]);
   const key = song ? transposeNotationChord(song.key, semitones, song.notation) : '';
-  useEffect(() => { setSemitones(0); }, [id, setSemitones]);
+  useEffect(() => { const initial = Number(transpose); setSemitones(Number.isFinite(initial) ? initial : 0); }, [id, setSemitones, transpose]);
 
   if (!song) return <SafeAreaView style={styles.safe}><View style={styles.missing}><Text style={styles.missingTitle}>Canción no disponible</Text><Text style={styles.missingCopy}>Puede haber sido eliminada o todavía no se ha sincronizado.</Text><Pressable onPress={() => router.replace('/library')}><Text style={styles.missingAction}>Volver a la biblioteca</Text></Pressable></View></SafeAreaView>;
 

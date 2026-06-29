@@ -16,4 +16,11 @@ describe('parsePastedSetlist', () => {
     expect(parsed.matches[0]?.song?.id).toBe('2');
     expect(parsed.matches[1]?.song).toBeUndefined();
   });
+  it('keeps every line when the pasted list has no header', () => {
+    const parsed = parsePastedSetlist('1. Digno y Santo\n2. Canción Nueva', library);
+    expect(parsed.title).toBe('');
+    expect(parsed.matches.map((item) => item.line)).toEqual(['Digno y Santo', 'Canción Nueva']);
+    expect(parsed.matches[0]?.song?.id).toBe('1');
+    expect(parsed.matches[1]?.song).toBeUndefined();
+  });
 });

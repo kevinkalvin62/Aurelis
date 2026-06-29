@@ -28,13 +28,13 @@ export default function HomeScreen() {
           <Text style={styles.heroTitle}>{next.title}</Text>
           <Text style={styles.heroMeta}>{next.dateLabel}  ·  {next.time}  ·  {next.location}</Text>
           <View style={styles.heroBottom}>
-            <View><Text style={styles.heroNumber}>{next.songIds.length}</Text><Text style={styles.heroCaption}>CANCIONES</Text></View>
+            <View><Text style={styles.heroNumber}>{next.items?.length ?? next.songIds.length}</Text><Text style={styles.heroCaption}>CANCIONES</Text></View>
             <View style={styles.rule} />
             <View><Text style={styles.heroNumber}>{next.peopleCount}</Text><Text style={styles.heroCaption}>MÚSICOS</Text></View>
             <Button label="Abrir setlist  ›" compact style={{ marginLeft: 'auto' }} />
           </View>
         </LinearGradient>
-      </Pressable> : <Pressable onPress={() => router.push('/setlists')} style={styles.emptyHero}><Text style={styles.heroEyebrow}>TU PRÓXIMO PROGRAMA</Text><Text style={styles.emptyHeroTitle}>Aún no tienes programas</Text><Text style={styles.emptyHeroCopy}>Crea una lista local o inicia sesión para trabajar con tu iglesia.</Text></Pressable>}
+      </Pressable> : <Pressable onPress={() => router.push('/setlists')} style={styles.emptyHero}><Text style={styles.heroEyebrow}>TU PRÓXIMO PROGRAMA</Text><Text style={styles.emptyHeroTitle}>Aún no tienes programas</Text><Text style={styles.emptyHeroCopy}>Crea una lista local o inicia sesión para trabajar con tu organización.</Text></Pressable>}
 
       <View style={styles.quickRow}>
         <Pressable onPress={() => router.push('/editor')} style={styles.quickCard}><Text style={styles.quickMark}>＋</Text><Text style={styles.quickTitle}>Nueva canción</Text><Text style={styles.quickCopy}>Letra y acordes</Text></Pressable>

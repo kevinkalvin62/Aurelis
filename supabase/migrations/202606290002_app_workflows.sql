@@ -1,28 +1,6 @@
 -- Incremental migration for the existing Aurelis schema.
 -- Creates workflow functions only. It does not create, drop, or alter tables.
 
-create or replace function public.create_organization_with_owner(
-  org_name text,
-  org_slug text,
-  org_type text default 'church'
-) returns public.organizations
-language plpgsql
-security definer
-set search_path = ''
-as $$
-declare
-  created public.organizations;
-begin
-  if auth.uid() is null then raise exception 'authentication required'; end if;
-  insert into public.organizations(name, slug, type, owner_id)
-  values(trim(org_name), lower(trim(org_slug)), coalesce(nullif(org_type, ''), 'church'), auth.uid())
-  returning * into created;
-  insert into public.organization_members(organization_id, user_id, role)
-  values(created.id, auth.uid(), 'owner');
-  return created;
-end;
-$$;
-
 create or replace function public.add_organization_member_by_email(
   target_org uuid,
   target_email text
@@ -93,12 +71,10 @@ as $$
   order by om.created_at;
 $$;
 
-revoke execute on function public.create_organization_with_owner(text, text, text) from public, anon;
 revoke execute on function public.add_organization_member_by_email(uuid, text) from public, anon;
 revoke execute on function public.set_organization_member_role(uuid, text) from public, anon;
 revoke execute on function public.get_organization_members(uuid) from public, anon;
 
-grant execute on function public.create_organization_with_owner(text, text, text) to authenticated;
 grant execute on function public.add_organization_member_by_email(uuid, text) to authenticated;
 grant execute on function public.set_organization_member_role(uuid, text) to authenticated;
 grant execute on function public.get_organization_members(uuid) to authenticated;

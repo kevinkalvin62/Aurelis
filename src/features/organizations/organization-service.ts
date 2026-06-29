@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { mapRemoteSong, REMOTE_SONG_SELECT, type RemoteSongRow } from '@/features/songs/song-mapper';
-import type { Instrument, InstrumentMaterial, MemberInstrument, Organization, OrganizationMember, OrganizationRole, Setlist, Song } from '@/types/domain';
+import { decodeSetlistSource } from '@/features/setlists/setlist-source';
+import type { Instrument, InstrumentMaterial, MemberInstrument, Organization, OrganizationMember, OrganizationRole, OrganizationType, Setlist, Song } from '@/types/domain';
 
 type ServiceResult<T> = { data?: T; error?: string };
 
@@ -9,15 +10,23 @@ export async function listMyOrganizations(): Promise<Organization[]> {
   if (error) throw new Error(error.message);
   return (data ?? []).flatMap((row: any): Organization[] => {
     const org = row.organizations;
-    return org ? [{ id: String(org.id), name: String(org.name), slug: String(org.slug), type: 'church', ownerId: String(org.owner_id), role: row.role as OrganizationRole }] : [];
+    return org ? [{ id: String(org.id), name: String(org.name), slug: String(org.slug), type: org.type as OrganizationType, ownerId: String(org.owner_id), role: row.role as OrganizationRole }] : [];
   });
 }
 
-export async function createOrganization(name: string, slug: string): Promise<ServiceResult<Organization>> {
-  const { data, error } = await supabase.rpc('create_organization_with_owner', { org_name: name, org_slug: slug, org_type: 'church' }).single();
-  if (error || !data) return { error: friendlyOrgError(error?.message ?? 'No fue posible crear la iglesia.') };
-  const row = data as any;
-  return { data: { id: String(row.id), name: String(row.name), slug: String(row.slug), type: 'church', ownerId: String(row.owner_id), role: 'owner' } };
+export async function createOrganization(name: string, slug: string, type: OrganizationType): Promise<ServiceResult<Organization>> {
+  const { data: authData, error: authError } = await supabase.auth.getUser();
+  if (authError || !authData.user) return { error: 'Tu sesión expiró. Inicia sesión nuevamente.' };
+  const userId = authData.user.id;
+  const { data, error } = await supabase.from('organizations').insert({ name, slug, type, owner_id: userId }).select('id,name,slug,type,owner_id').single();
+  if (error || !data) return { error: friendlyOrgError(error?.message ?? 'No fue posible crear la organización.') };
+  const { error: memberError } = await supabase.from('organization_members').insert({ organization_id: data.id, user_id: userId, role: 'owner' });
+  if (memberError) {
+    const { error: rollbackError } = await supabase.from('organizations').delete().eq('id', data.id);
+    const rollbackMessage = rollbackError ? ' Además, no fue posible revertir la organización incompleta.' : '';
+    return { error: `La organización se creó, pero no se pudo registrar al owner.${rollbackMessage}` };
+  }
+  return { data: { id: String(data.id), name: String(data.name), slug: String(data.slug), type: data.type as OrganizationType, ownerId: String(data.owner_id), role: 'owner' } };
 }
 
 export async function listInstruments(): Promise<Instrument[]> {
@@ -81,11 +90,12 @@ export async function listOrganizationSongs(organizationId: string): Promise<Son
 }
 
 export async function listOrganizationSetlists(organizationId: string): Promise<Setlist[]> {
-  const { data, error } = await supabase.from('setlists').select('id,organization_id,title,service_date,source_text,created_by,setlist_items(id,song_id,position,selected_key,notes)').eq('organization_id', organizationId).order('service_date', { ascending: false });
+  const { data, error } = await supabase.from('setlists').select('id,organization_id,title,service_date,source_text,created_by,setlist_items(id,song_id,title_snapshot,position,selected_key,notes)').eq('organization_id', organizationId).order('service_date', { ascending: false });
   if (error) throw new Error(error.message);
   return (data ?? []).map((row: any): Setlist => {
-    const items = [...(row.setlist_items ?? [])].sort((a, b) => a.position - b.position).map((item: any) => ({ id: String(item.id), setlistId: String(row.id), songId: `remote-${item.song_id}`, position: Number(item.position), ...(item.selected_key ? { selectedKey: String(item.selected_key) } : {}), ...(item.notes ? { notes: String(item.notes) } : {}) }));
-    return { id: String(row.id), organizationId: String(row.organization_id), title: String(row.title), dateLabel: row.service_date ? String(row.service_date) : 'SIN FECHA', ...(row.service_date ? { serviceDate: String(row.service_date) } : {}), time: 'Por definir', location: '', songIds: items.map((item) => item.songId), peopleCount: 0, ...(row.source_text ? { sourceText: String(row.source_text) } : {}), createdBy: String(row.created_by), items, syncStatus: 'synced' };
+    const items = [...(row.setlist_items ?? [])].sort((a, b) => a.position - b.position).map((item: any) => ({ id: String(item.id), setlistId: String(row.id), titleSnapshot: String(item.title_snapshot), ...(item.song_id ? { songId: `remote-${item.song_id}` } : {}), position: Number(item.position), ...(item.selected_key ? { selectedKey: String(item.selected_key) } : {}), ...(item.notes ? { notes: String(item.notes) } : {}) }));
+    const source = decodeSetlistSource(row.source_text);
+    return { id: String(row.id), organizationId: String(row.organization_id), title: String(row.title), dateLabel: row.service_date ? String(row.service_date) : 'SIN FECHA', ...(row.service_date ? { serviceDate: String(row.service_date) } : {}), time: 'Por definir', location: '', songIds: items.flatMap((item) => item.songId ? [item.songId] : []), peopleCount: 0, ...source, createdBy: String(row.created_by), items, syncStatus: 'synced' };
   });
 }
 
