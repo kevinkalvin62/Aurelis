@@ -23,6 +23,16 @@ export interface Song {
   ownerUserId?: string;
   organizationId?: string;
   currentKey?: string;
+  sourceInstrumentName: string;
+}
+
+export interface PersonalInstrument {
+  id: string;
+  userId: string;
+  instrumentId: string;
+  instrumentName: string;
+  isPrimary: boolean;
+  writtenOffset: number;
 }
 
 export interface Profile {

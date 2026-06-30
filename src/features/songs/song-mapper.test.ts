@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { mapRemoteSong, normalizeSongKey, songPayload } from "./song-mapper";
+import {
+  buildSongContentStructured,
+  mapRemoteSong,
+  normalizeSongKey,
+  songPayload,
+} from "./song-mapper";
 import type { Song } from "@/types/domain";
 
 const song: Song = {
@@ -13,20 +18,23 @@ const song: Song = {
   content: "DEFEDA / AGFGAGF",
   contentType: "wind_notes",
   notation: "american",
+  sourceInstrumentName: "Concert",
 };
 
 describe("Supabase song mapping", () => {
   it("stores app metadata in content_structured", () => {
-    expect(songPayload(song, "user-1")).toMatchObject({
+    const payload = songPayload(song, "user-1");
+    expect(payload).not.toHaveProperty("source_instrument_name");
+    expect(payload).toMatchObject({
       user_id: "user-1",
       organization_id: null,
       content_structured: [
         {
-          version: 1,
+          schema_version: 1,
           type: "wind_notes",
           notation: "american",
           bpm: 96,
-          lines: ["DEFEDA / AGFGAGF"],
+          lines: [{ raw: "DEFEDA / AGFGAGF" }],
         },
       ],
     });
@@ -46,6 +54,10 @@ describe("Supabase song mapping", () => {
         content_structured: [
           { version: 1, type: "wind_notes", notation: "american", bpm: 96 },
         ],
+        song_versions: [
+          { version: 1, source_instrument_name: "Concert" },
+          { version: 2, source_instrument_name: "Trompeta Bb" },
+        ],
         visibility: "private",
         updated_at: "2026-06-29T00:00:00.000Z",
       }),
@@ -56,6 +68,7 @@ describe("Supabase song mapping", () => {
       notation: "american",
       bpm: 96,
       currentKey: "E",
+      sourceInstrumentName: "Trompeta Bb",
     });
   });
 
@@ -86,7 +99,41 @@ describe("Supabase song mapping", () => {
     expect(normalizeSongKey("Do#")).toBe("C#");
     expect(normalizeSongKey("Sol")).toBe("G");
     expect(normalizeSongKey("sib")).toBe("Bb");
+    expect(normalizeSongKey("Em")).toBe("Em");
+    expect(normalizeSongKey("E minor")).toBe("Em");
+    expect(normalizeSongKey("Mi menor")).toBe("Em");
+    expect(normalizeSongKey("Do mayor")).toBe("C");
+    expect(normalizeSongKey("Bb")).toBe("Bb");
+    expect(normalizeSongKey("F#m")).toBe("F#m");
     expect(normalizeSongKey("H")).toBeNull();
     expect(normalizeSongKey("")).toBeNull();
+  });
+
+  it("sends an empty optional key as null", () => {
+    expect(songPayload({ ...song, key: "" }, "user-1")).toMatchObject({
+      original_key: null,
+      current_key: null,
+    });
+  });
+
+  it("always builds a JSON array and uses an empty array without content", () => {
+    expect(
+      buildSongContentStructured({
+        contentRaw: "",
+        contentType: "wind_notes",
+        notation: "american",
+        bpm: 80,
+      }),
+    ).toEqual([]);
+    expect(
+      Array.isArray(
+        buildSongContentStructured({
+          contentRaw: "C D",
+          contentType: "wind_notes",
+          notation: "american",
+          bpm: 80,
+        }),
+      ),
+    ).toBe(true);
   });
 });

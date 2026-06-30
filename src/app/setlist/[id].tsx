@@ -12,6 +12,8 @@ import {
   listOrganizationSongs,
 } from "@/features/organizations/organization-service";
 import { getInstrumentTransposeOffset } from "@/features/organizations/instrument-material";
+import { getTransposeDeltaBetweenInstruments } from "@/features/music-engine/instruments";
+import { listPersonalInstruments } from "@/features/auth/profile-service";
 import { linkRemoteSetlistItem } from "@/features/setlists/setlist-service";
 import { useAuthStore } from "@/store/auth-store";
 import { useSetlistStore } from "@/store/setlist-store";
@@ -51,6 +53,11 @@ export default function SetlistDetailScreen() {
     queryFn: () => listOrganizationMembers(organizationId!),
     enabled: Boolean(organizationId),
   });
+  const { data: personalInstruments = [] } = useQuery({
+    queryKey: ["personal-instruments", user?.id],
+    queryFn: () => listPersonalInstruments(user!.id),
+    enabled: Boolean(!organizationId && user),
+  });
   const mergeSongs = useSongStore((state) => state.mergeRemoteSongs);
   useEffect(() => {
     if (remoteSongs.length) mergeSongs(remoteSongs);
@@ -76,7 +83,15 @@ export default function SetlistDetailScreen() {
     membership?.role === "owner" ||
     membership?.role === "admin" ||
     membership?.role === "director";
-  const assignedInstruments = membership?.instruments ?? [];
+  const assignedInstruments = organizationId
+    ? (membership?.instruments ?? [])
+    : personalInstruments;
+  useEffect(() => {
+    const preferred =
+      assignedInstruments.find((instrument) => instrument.isPrimary) ??
+      assignedInstruments[0];
+    setSelectedInstrumentId(preferred?.instrumentId ?? "all");
+  }, [organizationId, user?.id, assignedInstruments.length]);
   const activeInstrument =
     selectedInstrumentId === "all"
       ? undefined
@@ -143,7 +158,7 @@ export default function SetlistDetailScreen() {
             <Text style={styles.notesText}>{setlist.notes}</Text>
           </View>
         ) : null}
-        {organizationId ? (
+        {organizationId || personalInstruments.length ? (
           <View style={styles.instrumentView}>
             <Text style={styles.instrumentLabel}>VISTA POR INSTRUMENTO</Text>
             <View style={styles.instrumentFilters}>
@@ -203,7 +218,16 @@ export default function SetlistDetailScreen() {
                     <SongRow
                       song={song}
                       index={index + 1}
-                      semitones={material ? 0 : transpose}
+                      semitones={
+                        material
+                          ? 0
+                          : activeInstrument
+                            ? getTransposeDeltaBetweenInstruments(
+                                song.sourceInstrumentName,
+                                activeInstrument.instrumentName,
+                              )
+                            : 0
+                      }
                     />
                     {material ? (
                       <View style={styles.material}>

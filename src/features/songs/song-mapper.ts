@@ -15,16 +15,17 @@ export interface RemoteSongRow {
   current_key: string | null;
   content_raw: string;
   content_structured: unknown;
+  song_versions?: { version: number; source_instrument_name: string | null }[];
   visibility: Visibility;
   updated_at: string;
 }
 
-interface StructuredSongDocument {
-  version: number;
+export interface SongStructuredContent {
+  schema_version: number;
   type: SongContentType;
   notation: MusicNotation;
-  bpm: number;
-  lines: string[];
+  bpm: number | null;
+  lines: Record<string, string>[];
 }
 
 const CONTENT_TYPES: SongContentType[] = [
@@ -51,6 +52,23 @@ const ALLOWED_KEYS = new Set([
   "A#",
   "Bb",
   "B",
+  "Cm",
+  "C#m",
+  "Dbm",
+  "Dm",
+  "D#m",
+  "Ebm",
+  "Em",
+  "Fm",
+  "F#m",
+  "Gbm",
+  "Gm",
+  "G#m",
+  "Abm",
+  "Am",
+  "A#m",
+  "Bbm",
+  "Bm",
 ]);
 const LATIN_ROOTS: Record<string, string> = {
   DO: "C",
@@ -63,22 +81,49 @@ const LATIN_ROOTS: Record<string, string> = {
 };
 
 export const REMOTE_SONG_SELECT =
-  "id,user_id,organization_id,title,artist,original_key,current_key,content_raw,content_structured,visibility,updated_at";
+  "id,user_id,organization_id,title,artist,original_key,current_key,content_raw,content_structured,visibility,updated_at,song_versions(version,source_instrument_name)";
 
-export function structuredSongContent(song: Song): StructuredSongDocument[] {
+export function buildSongContentStructured(input: {
+  contentRaw: string;
+  contentType: SongContentType;
+  notation: MusicNotation;
+  bpm?: number | null;
+}): SongStructuredContent[] {
+  if (!input.contentRaw) return [];
   return [
     {
-      version: 1,
-      type: song.contentType,
-      notation: song.notation,
-      bpm: song.bpm,
-      lines: song.content.split(/\r?\n/),
+      schema_version: 1,
+      type: input.contentType,
+      notation: input.notation,
+      bpm:
+        Number.isFinite(input.bpm) && Number(input.bpm) > 0
+          ? Number(input.bpm)
+          : null,
+      lines: structuredLines(input.contentRaw, input.contentType),
     },
   ];
 }
 
+function structuredLines(
+  contentRaw: string,
+  contentType: SongContentType,
+): Record<string, string>[] {
+  const lines = contentRaw.split(/\r?\n/);
+  if (contentType === "lyrics_chords") {
+    const result: Record<string, string>[] = [];
+    for (let index = 0; index < lines.length; index += 2) {
+      result.push({
+        chord_line: lines[index] ?? "",
+        lyric_line: lines[index + 1] ?? "",
+      });
+    }
+    return result;
+  }
+  return lines.map((raw) => ({ raw }));
+}
+
 export function songPayload(song: Song, userId: string) {
-  const originalKey = normalizeSongKey(song.key) ?? "C";
+  const originalKey = normalizeSongKey(song.key);
   const currentKey =
     normalizeSongKey(song.currentKey ?? song.key) ?? originalKey;
   return {
@@ -89,7 +134,12 @@ export function songPayload(song: Song, userId: string) {
     original_key: originalKey,
     current_key: currentKey,
     content_raw: song.content,
-    content_structured: structuredSongContent(song),
+    content_structured: buildSongContentStructured({
+      contentRaw: song.content,
+      contentType: song.contentType,
+      notation: song.notation,
+      bpm: song.bpm,
+    }),
     visibility: song.organizationId
       ? ("organization" as const)
       : song.visibility,
@@ -98,27 +148,30 @@ export function songPayload(song: Song, userId: string) {
 }
 
 export function normalizeSongKey(value?: string): string | null {
-  const input = value?.trim().replace("♯", "#").replace("♭", "b");
+  const input = value?.trim().replace(/[♯]/g, "#").replace(/[♭]/g, "b");
   if (!input) return null;
-  const latin = input.match(/^(DO|RE|MI|FA|SOL|LA|SI)([#b]?)$/i);
+  const cleaned = input
+    .replace(/\s+(major|mayor)$/i, "")
+    .replace(/\s+(minor|menor)$/i, "m");
+  const latin = cleaned.match(/^(DO|RE|MI|FA|SOL|LA|SI)([#b]?)(m)?$/i);
   if (latin) {
     const root = LATIN_ROOTS[latin[1]!.toUpperCase()];
     const accidental = latin[2] === "#" ? "#" : latin[2] ? "b" : "";
-    const normalized = `${root}${accidental}`;
+    const normalized = `${root}${accidental}${latin[3] ? "m" : ""}`;
     return ALLOWED_KEYS.has(normalized) ? normalized : null;
   }
-  const american = input.match(/^([A-G])([#b]?)$/i);
+  const american = cleaned.match(/^([A-G])([#b]?)(m)?$/i);
   if (!american) return null;
   const accidental = american[2] === "#" ? "#" : american[2] ? "b" : "";
-  const normalized = `${american[1]!.toUpperCase()}${accidental}`;
+  const normalized = `${american[1]!.toUpperCase()}${accidental}${american[3] ? "m" : ""}`;
   return ALLOWED_KEYS.has(normalized) ? normalized : null;
 }
 
 export function mapRemoteSong(row: RemoteSongRow): Song {
-  const firstDocument = Array.isArray(row.content_structured)
+  const document = Array.isArray(row.content_structured)
     ? row.content_structured[0]
     : row.content_structured;
-  const structured = isRecord(firstDocument) ? firstDocument : {};
+  const structured = isRecord(document) ? document : {};
   const contentType = CONTENT_TYPES.includes(structured.type as SongContentType)
     ? (structured.type as SongContentType)
     : "lyrics_chords";
@@ -126,6 +179,9 @@ export function mapRemoteSong(row: RemoteSongRow): Song {
     ? (structured.notation as MusicNotation)
     : "american";
   const bpmValue = Number(structured.bpm);
+  const latestVersion = [...(row.song_versions ?? [])].sort(
+    (left, right) => right.version - left.version,
+  )[0];
   return {
     id: `remote-${row.id}`,
     remoteId: String(row.id),
@@ -141,6 +197,7 @@ export function mapRemoteSong(row: RemoteSongRow): Song {
     content: String(row.content_raw ?? ""),
     contentType,
     notation,
+    sourceInstrumentName: latestVersion?.source_instrument_name || "Concert",
     visibility: row.visibility,
     updatedAt: new Date(row.updated_at).toLocaleDateString(),
     syncStatus: "synced",

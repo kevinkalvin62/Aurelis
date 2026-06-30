@@ -19,6 +19,7 @@ import { canAdministerOrganization } from "@/features/organizations/permissions"
 import { listMyOrganizations } from "@/features/organizations/organization-service";
 import { deleteRemoteSong, syncSong } from "@/features/songs/song-sync";
 import { normalizeSongKey } from "@/features/songs/song-mapper";
+import { SOURCE_INSTRUMENT_OPTIONS } from "@/features/music-engine/instruments";
 import { useAuthStore } from "@/store/auth-store";
 import { useSongStore } from "@/store/song-store";
 import { toast } from "@/store/toast-store";
@@ -27,7 +28,8 @@ import type { MusicNotation, SongContentType } from "@/types/domain";
 const schema = z.object({
   title: z.string().trim().min(2),
   artist: z.string().trim(),
-  key: z.string().trim().min(1),
+  key: z.string().trim(),
+  sourceInstrumentName: z.string().trim().min(1),
   contentType: z.enum(["lyrics_chords", "chords_only", "wind_notes"]),
   notation: z.enum(["american", "latin"]),
   visibility: z.enum(["private", "public", "organization"]),
@@ -74,6 +76,7 @@ export default function EditorScreen() {
   const markSyncPending = useSongStore((state) => state.markSyncPending);
   const markSynced = useSongStore((state) => state.markSynced);
   const deleteSong = useSongStore((state) => state.deleteSong);
+  const restoreSong = useSongStore((state) => state.restoreSong);
   const { accessMode, user } = useAuthStore();
   const song = songs.find((item) => item.id === id);
   const effectiveOrganizationId = organizationId || song?.organizationId;
@@ -104,6 +107,7 @@ export default function EditorScreen() {
       title: song?.title ?? "",
       artist: song?.artist ?? "",
       key: song?.key ?? "C",
+      sourceInstrumentName: song?.sourceInstrumentName ?? "Concert",
       contentType: song?.contentType ?? "lyrics_chords",
       notation: song?.notation ?? "american",
       visibility:
@@ -113,6 +117,10 @@ export default function EditorScreen() {
   });
   const contentType = useWatch({ control, name: "contentType" });
   const notation = useWatch({ control, name: "notation" });
+  const sourceInstrumentName = useWatch({
+    control,
+    name: "sourceInstrumentName",
+  });
 
   const chooseContentType = (value: SongContentType) => {
     setValue("contentType", value, { shouldDirty: true });
@@ -132,7 +140,7 @@ export default function EditorScreen() {
         return;
       }
       const normalizedKey = normalizeSongKey(result.data.key);
-      if (!normalizedKey) {
+      if (result.data.key && !normalizedKey) {
         toast.error(
           "Usa una tonalidad válida, por ejemplo C, F#, Bb, Do o Sol.",
         );
@@ -144,7 +152,8 @@ export default function EditorScreen() {
         {
           title: result.data.title,
           artist: result.data.artist,
-          key: normalizedKey,
+          key: normalizedKey ?? "",
+          sourceInstrumentName: result.data.sourceInstrumentName,
           bpm: song?.bpm ?? 80,
           visibility: result.data.visibility,
           content: result.data.content,
@@ -163,39 +172,24 @@ export default function EditorScreen() {
       if (accessMode === "authenticated" && user) {
         markSyncPending(localSong.id);
         const synced = await syncSong(localSong, user.id);
-        if (synced.remoteId) {
+        if (synced.remoteId && !synced.error) {
           markSynced(localSong.id, synced.remoteId);
           if (localSong.organizationId)
             await queryClient.invalidateQueries({
               queryKey: ["organization-songs", localSong.organizationId],
             });
-          if (synced.error) {
-            setSaveMessage(
-              "Canción sincronizada; no fue posible guardar su historial de versión.",
-            );
-            toast.warning("Canción sincronizada sin historial de versión.");
-          } else {
-            setSaveMessage("Guardada y sincronizada.");
-            toast.success("Canción guardada y sincronizada.");
-          }
+          setSaveMessage("Guardada y sincronizada.");
+          toast.success("Canción guardada y sincronizada.");
         } else {
-          if (localSong.organizationId) {
-            deleteSong(localSong.id);
-            setSaving(false);
-            setSaveMessage(
-              "No fue posible guardar la canción en la organización.",
-            );
-            toast.error(
-              synced.error ?? "No fue posible guardar la canción en Supabase.",
-            );
-            return;
-          }
-          setSaveMessage(
-            "Guardada en este dispositivo. La sincronización se reintentará después.",
-          );
-          toast.warning(
-            "Guardada localmente; la sincronización queda pendiente.",
-          );
+          if (song) restoreSong(song);
+          else deleteSong(localSong.id);
+          setSaving(false);
+          const message = localSong.organizationId
+            ? "No se pudo guardar en la biblioteca de la organización."
+            : "No se pudo guardar la canción en tu biblioteca.";
+          setSaveMessage(message);
+          toast.error(synced.error ?? message);
+          return;
         }
       } else {
         setSaveMessage("Guardada en este dispositivo.");
@@ -361,6 +355,36 @@ export default function EditorScreen() {
             />
           </View>
         </View>
+        <Text style={styles.label}>
+          ¿PARA QUÉ INSTRUMENTO ESTÁ ESCRITO ESTE MATERIAL?
+        </Text>
+        <Controller
+          control={control}
+          name="sourceInstrumentName"
+          render={({ field: { onChange } }) => (
+            <View style={styles.instrumentOptions}>
+              {SOURCE_INSTRUMENT_OPTIONS.map((option) => (
+                <Pressable
+                  key={option}
+                  onPress={() => onChange(option)}
+                  style={[
+                    styles.instrumentOption,
+                    sourceInstrumentName === option &&
+                      styles.instrumentOptionActive,
+                  ]}
+                >
+                  <Text style={styles.instrumentOptionText}>
+                    {option === "Concert" ? "General / Concert" : option}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          )}
+        />
+        <Text style={styles.instrumentHelp}>
+          Si estas notas ya están escritas para trompeta, selecciona Trompeta Bb
+          para evitar doble transporte.
+        </Text>
         {!organizationId && !song?.organizationId ? (
           <>
             <Text style={styles.label}>VISIBILIDAD</Text>
@@ -576,6 +600,25 @@ const styles = StyleSheet.create({
   },
   notationExample: { color: "#77706C", fontSize: 8, marginTop: 3 },
   keyBlock: { width: 84 },
+  instrumentOptions: { flexDirection: "row", flexWrap: "wrap", gap: 7 },
+  instrumentOption: {
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  instrumentOptionActive: {
+    borderColor: colors.accent,
+    backgroundColor: colors.primary,
+  },
+  instrumentOptionText: { color: colors.text, fontSize: 9, fontWeight: "700" },
+  instrumentHelp: {
+    color: colors.textSecondary,
+    fontSize: 10,
+    lineHeight: 15,
+    marginTop: 8,
+  },
   visibilityRow: { flexDirection: "row", gap: 8 },
   visibility: {
     flex: 1,

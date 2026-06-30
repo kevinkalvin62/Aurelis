@@ -71,6 +71,7 @@ describe("instrument material adaptation", () => {
       content: "C D E",
       contentType: "wind_notes" as const,
       notation: "american" as const,
+      sourceInstrumentName: "Concert",
     };
     expect(getInstrumentTransposeOffset(trumpet)).toBe(2);
     expect(transposeSongForInstrument(song, trumpet)).toMatchObject({
