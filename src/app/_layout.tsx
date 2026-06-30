@@ -1,5 +1,5 @@
 import '@/global.css';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
 import { router, Stack, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
@@ -12,6 +12,7 @@ import { pullRemoteSongs, syncLocalSongs } from '@/features/songs/song-sync';
 import { fetchProfile } from '@/features/auth/profile-service';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/auth-store';
+import { switchLocalDataScope } from '@/store/local-data-scope';
 
 export default function RootLayout() {
   const [queryClient] = useState(() => new QueryClient({ defaultOptions: { queries: { staleTime: 30_000, retry: 1 } } }));
@@ -30,6 +31,7 @@ export default function RootLayout() {
 
 function AppGate() {
   const segments = useSegments();
+  const queryClient = useQueryClient();
   const { accessMode, hydrated, setAuthenticated, clearAccess } = useAuthStore();
   const [sessionChecked, setSessionChecked] = useState(false);
   const syncedUser = useRef<string | null>(null);
@@ -37,8 +39,16 @@ function AppGate() {
   useEffect(() => {
     const applySession = async (user: { id: string; email?: string; user_metadata?: Record<string, unknown> } | null) => {
       if (!user) {
-        if (useAuthStore.getState().accessMode === 'authenticated') clearAccess();
+        syncedUser.current = null;
+        queryClient.clear();
+        const currentMode = useAuthStore.getState().accessMode;
+        await switchLocalDataScope(currentMode === 'guest' ? 'guest' : null);
+        if (currentMode === 'authenticated') clearAccess();
         return;
+      }
+      if (syncedUser.current !== user.id) {
+        queryClient.clear();
+        await switchLocalDataScope(`user:${user.id}`);
       }
       const email = user.email ?? '';
       const profile = await fetchProfile(user.id);
@@ -56,7 +66,7 @@ function AppGate() {
     });
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => { void applySession(session?.user ?? null); });
     return () => listener.subscription.unsubscribe();
-  }, [clearAccess, setAuthenticated]);
+  }, [clearAccess, queryClient, setAuthenticated]);
 
   useEffect(() => {
     if (!hydrated || !sessionChecked) return;

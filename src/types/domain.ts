@@ -1,8 +1,10 @@
-export type Visibility = 'private' | 'organization' | 'public';
-export type OrganizationRole = 'owner' | 'admin' | 'director' | 'musician' | 'guest';
-export type SongContentType = 'lyrics_chords' | 'chords_only' | 'wind_notes';
-export type MusicNotation = 'american' | 'latin';
-export type OrganizationType = 'church' | 'band' | 'school' | 'choir' | 'group' | 'personal';
+export type Visibility = "private" | "organization" | "public";
+export type OrganizationRole =
+  "owner" | "admin" | "director" | "musician" | "guest";
+export type SongContentType = "lyrics_chords" | "chords_only" | "wind_notes";
+export type MusicNotation = "american" | "latin";
+export type OrganizationType =
+  "church" | "band" | "school" | "choir" | "group" | "personal";
 
 export interface Song {
   id: string;
@@ -17,7 +19,7 @@ export interface Song {
   notation: MusicNotation;
   favorite?: boolean;
   remoteId?: string;
-  syncStatus?: 'local' | 'pending' | 'synced';
+  syncStatus?: "local" | "pending" | "synced";
   ownerUserId?: string;
   organizationId?: string;
   currentKey?: string;
@@ -56,6 +58,7 @@ export interface MemberInstrument {
   instrumentName: string;
   transpositionKey?: string;
   isPrimary: boolean;
+  writtenOffset: number;
 }
 
 export interface Setlist {
@@ -67,12 +70,13 @@ export interface Setlist {
   songIds: string[];
   peopleCount: number;
   organizationId?: string;
+  organizationName?: string;
   serviceDate?: string;
   notes?: string;
   sourceText?: string;
   createdBy?: string;
   items?: SetlistItem[];
-  syncStatus?: 'local' | 'pending' | 'synced';
+  syncStatus?: "local" | "pending" | "synced";
 }
 
 export interface SetlistItem {
@@ -100,10 +104,12 @@ export interface InstrumentMaterial {
   key?: string;
   contentRaw?: string;
   notes?: string;
+  adaptedFromInstrumentName?: string;
 }
 
 export interface Instrument {
   id: string;
   name: string;
   transpositionKey?: string;
+  writtenOffset: number;
 }

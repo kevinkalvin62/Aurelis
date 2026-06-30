@@ -50,7 +50,9 @@ begin
   if caller_role not in ('owner', 'admin') then raise exception 'insufficient permissions'; end if;
   if target_role not in ('admin', 'director', 'musician') then raise exception 'invalid role'; end if;
   if member_row.role = 'owner' then raise exception 'owner role cannot be changed'; end if;
-  update public.organization_members set role = target_role where id = target_member;
+  update public.organization_members
+  set role = target_role::public.organization_role
+  where id = target_member;
 end;
 $$;
 
@@ -78,3 +80,5 @@ revoke execute on function public.get_organization_members(uuid) from public, an
 grant execute on function public.add_organization_member_by_email(uuid, text) to authenticated;
 grant execute on function public.set_organization_member_role(uuid, text) to authenticated;
 grant execute on function public.get_organization_members(uuid) to authenticated;
+
+notify pgrst, 'reload schema';

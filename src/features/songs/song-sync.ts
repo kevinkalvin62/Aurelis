@@ -40,6 +40,6 @@ export async function pullRemoteSongs(userId: string): Promise<void> {
 }
 
 export async function deleteRemoteSong(remoteId: string): Promise<string | null> {
-  const { error } = await supabase.from('songs').delete().eq('id', remoteId);
+  const { error } = await supabase.rpc('soft_delete_song', { target_song: remoteId });
   return error?.message ?? null;
 }

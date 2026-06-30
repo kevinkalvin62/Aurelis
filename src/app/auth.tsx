@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { CormorantGaramond_600SemiBold_Italic, useFonts } from '@expo-google-fonts/cormorant-garamond';
 import { Controller, useForm } from 'react-hook-form';
 import { router } from 'expo-router';
@@ -10,6 +11,7 @@ import { colors, radii, spacing } from '@/constants/design';
 import { ensureProfile } from '@/features/auth/profile-service';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/auth-store';
+import { switchLocalDataScope } from '@/store/local-data-scope';
 import { toast } from '@/store/toast-store';
 
 interface AuthForm { displayName: string; email: string; password: string }
@@ -25,6 +27,7 @@ function friendlyAuthError(message: string): string {
 }
 
 export default function AuthScreen() {
+  const queryClient = useQueryClient();
   const [fontsLoaded] = useFonts({ CormorantGaramond_600SemiBold_Italic });
   const { accessMode, user, continueAsGuest, setAuthenticated, clearAccess } = useAuthStore();
   const [mode, setMode] = useState<'login' | 'register'>('login');
@@ -33,7 +36,7 @@ export default function AuthScreen() {
   const [loading, setLoading] = useState(false);
   const { control, handleSubmit, getValues, formState: { errors } } = useForm<AuthForm>({ defaultValues: { displayName: '', email: '', password: '' } });
 
-  const enterAsGuest = () => { continueAsGuest(); router.replace('/'); };
+  const enterAsGuest = async () => { await switchLocalDataScope('guest'); continueAsGuest(); router.replace('/'); };
   const submit = handleSubmit(async ({ displayName, email, password }) => {
     if (!isSupabaseConfigured) { toast.error('La conexión con Supabase no está configurada.'); return; }
     setLoading(true); setMessage(''); setSuccess(false);
@@ -64,7 +67,14 @@ export default function AuthScreen() {
   };
 
   const signOut = async () => {
-    setLoading(true); await supabase.auth.signOut(); clearAccess(); setLoading(false); toast.info('Sesión cerrada. Tus datos locales siguen en este dispositivo.');
+    setLoading(true);
+    await supabase.auth.signOut();
+    queryClient.clear();
+    await switchLocalDataScope(null);
+    clearAccess();
+    setLoading(false);
+    router.replace('/auth');
+    toast.info('Sesión cerrada.');
   };
 
   if (!fontsLoaded) return <SafeAreaView style={styles.safe}><ActivityIndicator color={colors.accent} style={{ flex: 1 }} /></SafeAreaView>;

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { appStorage } from '@/lib/storage';
+import { formatFriendlyDate } from '@/lib/dates';
 import type { Setlist, SetlistDraftItem } from '@/types/domain';
 
 interface SetlistState {
@@ -14,7 +15,7 @@ interface SetlistState {
 function buildSetlist(input: { title: string; serviceDate?: string; notes?: string; sourceText?: string; items: SetlistDraftItem[] }): Setlist {
   const id = `local-setlist-${Date.now()}`;
   const items = input.items.map((item, position) => ({ id: `${id}-item-${position}`, setlistId: id, position, titleSnapshot: item.titleSnapshot, ...(item.songId ? { songId: item.songId } : {}), ...(item.selectedKey ? { selectedKey: item.selectedKey } : {}), ...(item.notes ? { notes: item.notes } : {}) }));
-  return { id, title: input.title, dateLabel: input.serviceDate || 'SIN FECHA', time: 'Por definir', location: 'Local', songIds: items.flatMap((item) => item.songId ? [item.songId] : []), items, peopleCount: 1, ...(input.serviceDate ? { serviceDate: input.serviceDate } : {}), ...(input.notes ? { notes: input.notes } : {}), ...(input.sourceText ? { sourceText: input.sourceText } : {}), syncStatus: 'local' };
+  return { id, title: input.title, dateLabel: formatFriendlyDate(input.serviceDate), time: 'Por definir', location: 'Local', songIds: items.flatMap((item) => item.songId ? [item.songId] : []), items, peopleCount: 1, ...(input.serviceDate ? { serviceDate: input.serviceDate } : {}), ...(input.notes ? { notes: input.notes } : {}), ...(input.sourceText ? { sourceText: input.sourceText } : {}), syncStatus: 'local' };
 }
 
 export const useSetlistStore = create<SetlistState>()(persist(
@@ -34,5 +35,5 @@ export const useSetlistStore = create<SetlistState>()(persist(
     }) })),
     deleteSetlist: (id) => set((state) => ({ setlists: state.setlists.filter((setlist) => setlist.id !== id) })),
   }),
-  { name: 'aurelis-setlists-v2', storage: createJSONStorage(() => appStorage) },
+  { name: 'aurelis:inactive:setlists', storage: createJSONStorage(() => appStorage), skipHydration: true },
 ));

@@ -41,5 +41,5 @@ export const useSongStore = create<SongState>()(persist(
     }),
     deleteSong: (id) => set((state) => ({ songs: state.songs.filter((song) => song.id !== id) })),
   }),
-  { name: 'aurelis-songs-v2', storage: createJSONStorage(() => appStorage) },
+  { name: 'aurelis:inactive:songs', storage: createJSONStorage(() => appStorage), skipHydration: true },
 ));

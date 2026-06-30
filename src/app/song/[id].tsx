@@ -1,16 +1,25 @@
 import { useEffect, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, radii, spacing } from '@/constants/design';
+import { isOrganizationLeader } from '@/features/organizations/permissions';
+import { listMyOrganizations } from '@/features/organizations/organization-service';
 import { getDisplayLines, transposeContent, transposeNotationChord } from '@/features/music-engine/notation';
 import { usePlayerStore } from '@/store/player-store';
+import { useAuthStore } from '@/store/auth-store';
 import { useSongStore } from '@/store/song-store';
 
 export default function SongScreen() {
   const { id, transpose } = useLocalSearchParams<{ id: string; transpose?: string }>();
   const songs = useSongStore((state) => state.songs);
   const song = songs.find((item) => item.id === id);
+  const user = useAuthStore((state) => state.user);
+  const accessMode = useAuthStore((state) => state.accessMode);
+  const { data: organizations = [] } = useQuery({ queryKey: ['organizations', user?.id], queryFn: listMyOrganizations, enabled: Boolean(song?.organizationId && accessMode === 'authenticated') });
+  const membership = organizations.find((organization) => organization.id === song?.organizationId);
+  const canEdit = Boolean(song && (!song.organizationId ? !song.ownerUserId || song.ownerUserId === user?.id : song.ownerUserId === user?.id || isOrganizationLeader(membership?.role)));
   const { semitones, setSemitones, fontScale, changeFontScale, presentationMode, togglePresentationMode } = usePlayerStore();
   const content = useMemo(() => song ? transposeContent(song.content, semitones, song.contentType, song.notation) : '', [semitones, song]);
   const displayLines = useMemo(() => song ? getDisplayLines(content, song.contentType, song.notation) : [], [content, song]);
@@ -21,7 +30,7 @@ export default function SongScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <View style={styles.nav}><Pressable onPress={() => router.back()} style={styles.navButton}><Text style={styles.navIcon}>‹</Text></Pressable><Text style={styles.navLabel}>BIBLIOTECA</Text><Pressable onPress={() => router.push({ pathname: '/editor', params: { id: song.id } })} style={styles.navButton}><Text style={styles.more}>•••</Text></Pressable></View>
+      <View style={styles.nav}><Pressable onPress={() => router.back()} style={styles.navButton}><Text style={styles.navIcon}>‹</Text></Pressable><Text style={styles.navLabel}>BIBLIOTECA</Text>{canEdit ? <Pressable onPress={() => router.push({ pathname: '/editor', params: { id: song.id } })} style={styles.navButton}><Text style={styles.more}>•••</Text></Pressable> : <View style={styles.navButton} />}</View>
       <ScrollView contentContainerStyle={[styles.scroll, presentationMode && styles.presentation]} showsVerticalScrollIndicator={false}>
         <View style={styles.header}><Text style={styles.eyebrow}>{song.artist.toUpperCase()}</Text><Text style={styles.title}>{song.title}</Text><View style={styles.metadata}><Text style={styles.meta}>{key}</Text><View style={styles.dot} /><Text style={styles.meta}>{song.bpm} BPM</Text><View style={styles.dot} /><Text style={styles.meta}>{song.notation === 'latin' ? 'NOTACIÓN LATINA' : 'NOTACIÓN AMERICANA'}</Text></View></View>
         <View style={styles.songSheet}>
