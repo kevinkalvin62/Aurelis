@@ -190,3 +190,86 @@ Resultado esperado
 Aurelis deja de ser una aplicación.
 
 Se convierte en parte natural de la vida musical de una agrupación.
+
+
+
+Toda nueva capacidad deberá responder las siguientes preguntas.
+
+## Problema
+
+¿Qué problema real elimina?
+
+---
+
+## Impacto
+
+¿Cuánto tiempo devuelve al músico?
+
+---
+
+## Frecuencia
+
+¿Con qué frecuencia ocurre ese problema?
+
+---
+
+## Alcance
+
+¿Cuántos músicos se benefician?
+
+---
+
+## Coherencia
+
+¿Acerca Aurelis a su propósito?
+
+---
+
+## Product Principles
+
+¿Respeta nuestros Product Principles?
+
+---
+
+Si una capacidad no supera este análisis, todavía no está lista para convertirse en parte del roadmap.
+
+# Evolución del Roadmap
+
+Este documento representa una visión.
+
+No un backlog.
+
+Las capacidades evolucionan lentamente.
+
+Las funcionalidades evolucionan constantemente.
+
+El roadmap solamente deberá modificarse cuando cambie la visión del producto.
+
+Nunca por la aparición de nuevas ideas aisladas.
+
+Las ideas se evalúan.
+
+La visión permanece.
+
+
+# Continuidad
+
+Aurelis no acompaña únicamente el próximo ensayo.
+
+Acompaña la historia musical de una agrupación.
+
+Cada canción interpretada.
+
+Cada programa preparado.
+
+Cada arreglo creado.
+
+Cada nota escrita.
+
+Cada aprendizaje adquirido.
+
+Todo forma parte del conocimiento que una banda construye con el tiempo.
+
+Nuestro objetivo consiste en preservar esa historia para que las siguientes generaciones de músicos puedan continuar construyendo sobre ella.
+
+Porque creemos que la música también merece tener memoria.
