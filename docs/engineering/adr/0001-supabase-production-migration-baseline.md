@@ -1,6 +1,6 @@
 # ADR 0001: baseline de migraciones de producción Supabase
 
-Estado: Propuesto — requiere aprobación antes de modificar producción.
+Estado: Aprobado — alternativa 4, 3 de julio de 2026.
 
 ## Problema
 
@@ -27,15 +27,18 @@ Marcar todo como aplicado también sería incorrecto: producción aún no contie
 
 Elegir la alternativa 4. Antes de ejecutarla:
 
-- obtener backup verificable;
-- generar un dump fresco y compararlo con el baseline versionado;
-- preparar una migración nueva, idempotente y forward-only para el delta;
-- ejecutar dry-run y revisión por pares;
+- obtener un backup verificable;
+- generar un dump/diff fresco contra producción;
+- preparar una migración nueva, idempotente y forward-only únicamente para el
+  delta pendiente;
+- ejecutar dry-run;
 - registrar explícitamente las versiones históricas aplicadas;
-- validar RLS/RPC y smoke tests después del despliegue.
+- validar RLS/RPC después del despliegue;
+- ejecutar smoke tests;
+- documentar la operación completa en el reporte del siguiente sprint.
 
-Hasta aprobar este ADR quedan prohibidos `db push`, `migration repair` y cualquier
-reset remoto.
+La aprobación no autoriza un reset remoto ni un `db push` directo. La operación
+de producción solo puede continuar después de satisfacer todas las condiciones.
 
 ## Impacto
 
