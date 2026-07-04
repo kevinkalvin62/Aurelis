@@ -1,5 +1,3 @@
-import { useMemo, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import DraggableFlatList from "react-native-draggable-flatlist";
@@ -7,172 +5,39 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/button";
 import { DateField } from "@/components/ui/date-field";
 import { colors, radii, spacing } from "@/constants/design";
-import { listOrganizationSongs } from "@/features/organizations/organization-service";
-import { parsePastedSetlist } from "@/features/setlists/parser";
-import { createRemoteSetlist } from "@/features/setlists/setlist-service";
-import { useAuthStore } from "@/store/auth-store";
-import { useSetlistStore } from "@/store/setlist-store";
-import { useSongStore } from "@/store/song-store";
-import { toast } from "@/store/toast-store";
-import type { SetlistDraftItem, Song } from "@/types/domain";
-
-type Mode = "manual" | "import";
-interface DraftEntry extends SetlistDraftItem {
-  clientId: string;
-}
-
-function entryId(): string {
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
+import type { SetlistCreationMode } from "@/features/setlists/setlist-draft";
+import { useSetlistCreator } from "@/features/setlists/use-setlist-creator";
 
 export default function CreateSetlistScreen() {
   const { organizationId, mode: initialMode } = useLocalSearchParams<{
     organizationId?: string;
-    mode?: Mode;
+    mode?: SetlistCreationMode;
   }>();
-  const accessMode = useAuthStore((state) => state.accessMode);
-  const queryClient = useQueryClient();
-  const allLocalSongs = useSongStore((state) => state.songs);
-  const localSongs = useMemo(
-    () => allLocalSongs.filter((song) => !song.organizationId),
-    [allLocalSongs],
-  );
-  const createLocal = useSetlistStore((state) => state.createSetlist);
-  const { data: organizationSongs = [] } = useQuery({
-    queryKey: ["organization-songs", organizationId],
-    queryFn: () => listOrganizationSongs(organizationId!),
-    enabled: Boolean(organizationId && accessMode === "authenticated"),
-  });
-  const songs = organizationId ? organizationSongs : localSongs;
-  const [mode, setMode] = useState<Mode>(initialMode === "import" ? "import" : "manual");
-  const [title, setTitle] = useState("");
-  const [date, setDate] = useState("");
-  const [notes, setNotes] = useState("");
-  const [source, setSource] = useState("");
-  const [freeTitle, setFreeTitle] = useState("");
-  const [entries, setEntries] = useState<DraftEntry[]>([]);
-  const [saving, setSaving] = useState(false);
-  const parsed = useMemo(() => parsePastedSetlist(source, songs), [source, songs]);
-
-  const addFreeEntry = () => {
-    const value = freeTitle.trim();
-    if (!value) {
-      toast.warning("Escribe el nombre de la canción.");
-      return;
-    }
-    setEntries((current) => [...current, { clientId: entryId(), titleSnapshot: value }]);
-    setFreeTitle("");
-    toast.info("Canción agregada como texto libre.");
-  };
-  const addLibrarySong = (song: Song) =>
-    setEntries((current) => [
-      ...current,
-      {
-        clientId: entryId(),
-        titleSnapshot: song.title,
-        songId: song.id,
-        selectedKey: song.currentKey ?? song.key,
-      },
-    ]);
-  const importList = () => {
-    if (!parsed.matches.length) {
-      toast.warning("Pega al menos una canción.");
-      return;
-    }
-    if (!title && parsed.title) setTitle(parsed.title);
-    setEntries(
-      parsed.matches.map((match) => ({
-        clientId: entryId(),
-        titleSnapshot: match.line,
-        ...(match.song
-          ? {
-              songId: match.song.id,
-              selectedKey: match.song.currentKey ?? match.song.key,
-            }
-          : {}),
-      })),
-    );
-    const linked = parsed.matches.filter((match) => match.song).length;
-    const free = parsed.matches.length - linked;
-    toast.info(`${linked} coincidencias; ${free} canciones se conservarán como texto libre.`);
-  };
-  const move = (clientId: string, delta: number) =>
-    setEntries((current) => {
-      const index = current.findIndex((item) => item.clientId === clientId);
-      const next = index + delta;
-      if (index < 0 || next < 0 || next >= current.length) return current;
-      const copy = [...current];
-      [copy[index], copy[next]] = [copy[next]!, copy[index]!];
-      return copy;
-    });
-  const remove = (clientId: string) =>
-    setEntries((current) => current.filter((item) => item.clientId !== clientId));
-
-  const submit = async () => {
-    if (title.trim().length < 2) {
-      toast.error("Escribe un título para el programa.");
-      return;
-    }
-    if (!entries.length) {
-      toast.warning("Agrega al menos una canción al programa.");
-      return;
-    }
-    setSaving(true);
-    if (organizationId) {
-      if (accessMode !== "authenticated") {
-        setSaving(false);
-        toast.warning("Necesitas iniciar sesión para usar esta función.");
-        router.replace("/auth");
-        return;
-      }
-      const remoteItems = entries.map((entry) => {
-        const linkedSong = entry.songId
-          ? songs.find((song) => song.id === entry.songId)
-          : undefined;
-        return {
-          titleSnapshot: entry.titleSnapshot,
-          ...(linkedSong?.remoteId ? { songId: linkedSong.remoteId } : {}),
-          ...(entry.selectedKey ? { selectedKey: entry.selectedKey } : {}),
-          ...(entry.notes ? { notes: entry.notes } : {}),
-        };
-      });
-      const result = await createRemoteSetlist({
-        organizationId,
-        title: title.trim(),
-        ...(date ? { serviceDate: date } : {}),
-        ...(notes ? { notes } : {}),
-        ...(mode === "import" ? { sourceText: source } : {}),
-        items: remoteItems,
-      });
-      setSaving(false);
-      if (!result.id) {
-        toast.error(result.error ?? "No fue posible crear el programa.");
-        return;
-      }
-      await queryClient.invalidateQueries({
-        queryKey: ["organization-setlists", organizationId],
-      });
-      await queryClient.invalidateQueries({
-        queryKey: ["organization-setlists-all"],
-      });
-      toast.success("Programa creado con todo su orden.");
-      router.replace({
-        pathname: "/setlist/[id]",
-        params: { id: result.id, organizationId },
-      });
-      return;
-    }
-    const created = createLocal({
-      title: title.trim(),
-      ...(date ? { serviceDate: date } : {}),
-      ...(notes ? { notes } : {}),
-      ...(mode === "import" ? { sourceText: source } : {}),
-      items: entries.map(({ clientId: _clientId, ...entry }) => entry),
-    });
-    setSaving(false);
-    toast.success("Programa guardado en este dispositivo.");
-    router.replace({ pathname: "/setlist/[id]", params: { id: created.id } });
-  };
+  const {
+    addFreeEntry,
+    addLibrarySong,
+    date,
+    entries,
+    freeTitle,
+    importList,
+    mode,
+    move,
+    notes,
+    parsed,
+    remove,
+    saving,
+    setDate,
+    setEntries,
+    setFreeTitle,
+    setMode,
+    setNotes,
+    setSource,
+    setTitle,
+    songs,
+    source,
+    submit,
+    title,
+  } = useSetlistCreator(organizationId, initialMode);
 
   return (
     <SafeAreaView style={styles.safe}>
