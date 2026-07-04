@@ -2,15 +2,20 @@ import { spawnSync } from "node:child_process";
 import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-const executable = resolve(
-  "node_modules",
-  ".bin",
-  process.platform === "win32" ? "supabase.cmd" : "supabase",
-);
+const executable =
+  process.platform === "win32"
+    ? resolve(
+        "node_modules",
+        "@supabase",
+        `cli-windows-${process.arch}`,
+        "bin",
+        "supabase.exe",
+      )
+    : resolve("node_modules", ".bin", "supabase");
 const result = spawnSync(
   executable,
   ["gen", "types", "typescript", "--local", "--schema", "public"],
-  { encoding: "utf8", shell: process.platform === "win32" },
+  { encoding: "utf8" },
 );
 
 if (result.stderr) process.stderr.write(result.stderr);
