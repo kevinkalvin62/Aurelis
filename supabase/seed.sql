@@ -1,0 +1,2 @@
+-- Sprint 1 intentionally defines no product data seeds.
+-- Schema reproducibility is validated independently from user-owned content.
