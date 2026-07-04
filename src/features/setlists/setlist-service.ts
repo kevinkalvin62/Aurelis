@@ -14,11 +14,9 @@ export async function createRemoteSetlist(input: {
 }): Promise<{ id?: string; error?: string }> {
   if (input.serviceDate && !isISODate(input.serviceDate))
     return { error: "La fecha no es válida." };
-  if (!input.serviceDate)
-    return { error: "Selecciona una fecha para el programa." };
+  if (!input.serviceDate) return { error: "Selecciona una fecha para el programa." };
   const { data: userData, error: userError } = await supabase.auth.getUser();
-  if (userError || !userData.user)
-    return { error: "Tu sesión expiró. Inicia sesión nuevamente." };
+  if (userError || !userData.user) return { error: "Tu sesión expiró. Inicia sesión nuevamente." };
   const sourceText = encodeSetlistSource(input.sourceText, input.notes);
   const { data, error } = await supabase
     .from("setlists")
@@ -31,8 +29,7 @@ export async function createRemoteSetlist(input: {
     })
     .select("id")
     .single();
-  if (error || !data)
-    return { error: error?.message ?? "No fue posible crear el programa." };
+  if (error || !data) return { error: error?.message ?? "No fue posible crear el programa." };
 
   const id = String(data.id);
   if (input.items.length) {
@@ -45,9 +42,7 @@ export async function createRemoteSetlist(input: {
       selected_key: normalizeSetlistSelectedKey(item.selectedKey),
       notes: item.notes || "",
     }));
-    const { error: itemsError } = await supabase
-      .from("setlist_items")
-      .insert(rows);
+    const { error: itemsError } = await supabase.from("setlist_items").insert(rows);
     if (itemsError) {
       await supabase.from("setlists").delete().eq("id", id);
       return { error: itemsError.message };

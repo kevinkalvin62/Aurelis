@@ -4,13 +4,7 @@ import { resolve } from "node:path";
 
 const executable =
   process.platform === "win32"
-    ? resolve(
-        "node_modules",
-        "@supabase",
-        `cli-windows-${process.arch}`,
-        "bin",
-        "supabase.exe",
-      )
+    ? resolve("node_modules", "@supabase", `cli-windows-${process.arch}`, "bin", "supabase.exe")
     : resolve("node_modules", ".bin", "supabase");
 const result = spawnSync(
   executable,

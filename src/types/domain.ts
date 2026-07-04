@@ -1,10 +1,8 @@
 export type Visibility = "private" | "organization" | "public";
-export type OrganizationRole =
-  "owner" | "admin" | "director" | "musician" | "guest";
+export type OrganizationRole = "owner" | "admin" | "director" | "musician" | "guest";
 export type SongContentType = "lyrics_chords" | "chords_only" | "wind_notes";
 export type MusicNotation = "american" | "latin";
-export type OrganizationType =
-  "church" | "band" | "school" | "choir" | "group" | "personal";
+export type OrganizationType = "church" | "band" | "school" | "choir" | "group" | "personal";
 
 export interface Song {
   id: string;

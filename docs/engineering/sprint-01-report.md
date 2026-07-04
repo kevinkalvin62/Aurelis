@@ -24,14 +24,14 @@ no se modificó Foundation.
 
 ## Decisiones y trazabilidad
 
-| Cambio | Problema resuelto | Respaldo | Deuda eliminada | Beneficio futuro |
-|---|---|---|---|---|
-| Snapshot base versionado | producción no podía recrearse desde Git | Gap C-01; Audit Critical C-01 | esquema base ausente | onboarding, CI y recuperación repetibles |
-| Reset local validado | migraciones incrementales dependían de objetos previos | Sprint 1; audit backend no reproducible | secuencia no verificable | cambios DB probables antes de producción |
-| Tipos generados | mappers/RPC dependían de `any` y contratos manuales | Gap “tipos generados”; Audit deuda 4 | divergencia DB/TypeScript | errores detectados durante compilación |
-| Validación de persistencia | cliente enviaba null a campos obligatorios | esquema recuperado; estabilidad técnica | fallos remotos silenciosos | fronteras de datos confiables |
-| Plantilla env desacoplada | desarrollo apuntaba por defecto a producción | Sprint 1 variables; Expo/Supabase docs | acoplamiento de entorno | desarrollo local seguro |
-| ADR de baseline remoto | historial remoto vacío y drift parcial | Foundation Governance; regla ADR | riesgo de `db push` destructivo | despliegue SQL auditable |
+| Cambio                     | Problema resuelto                                      | Respaldo                                | Deuda eliminada                 | Beneficio futuro                         |
+| -------------------------- | ------------------------------------------------------ | --------------------------------------- | ------------------------------- | ---------------------------------------- |
+| Snapshot base versionado   | producción no podía recrearse desde Git                | Gap C-01; Audit Critical C-01           | esquema base ausente            | onboarding, CI y recuperación repetibles |
+| Reset local validado       | migraciones incrementales dependían de objetos previos | Sprint 1; audit backend no reproducible | secuencia no verificable        | cambios DB probables antes de producción |
+| Tipos generados            | mappers/RPC dependían de `any` y contratos manuales    | Gap “tipos generados”; Audit deuda 4    | divergencia DB/TypeScript       | errores detectados durante compilación   |
+| Validación de persistencia | cliente enviaba null a campos obligatorios             | esquema recuperado; estabilidad técnica | fallos remotos silenciosos      | fronteras de datos confiables            |
+| Plantilla env desacoplada  | desarrollo apuntaba por defecto a producción           | Sprint 1 variables; Expo/Supabase docs  | acoplamiento de entorno         | desarrollo local seguro                  |
+| ADR de baseline remoto     | historial remoto vacío y drift parcial                 | Foundation Governance; regla ADR        | riesgo de `db push` destructivo | despliegue SQL auditable                 |
 
 ## Evidencia de validación
 

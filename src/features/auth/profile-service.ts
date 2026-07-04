@@ -2,15 +2,10 @@ import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import type { Instrument, PersonalInstrument, Profile } from "@/types/domain";
 
-export async function ensureProfile(
-  user: User,
-  displayName?: string,
-): Promise<Profile | null> {
+export async function ensureProfile(user: User, displayName?: string): Promise<Profile | null> {
   const fallbackName =
     displayName?.trim() ||
-    (typeof user.user_metadata?.display_name === "string"
-      ? user.user_metadata.display_name
-      : "") ||
+    (typeof user.user_metadata?.display_name === "string" ? user.user_metadata.display_name : "") ||
     user.email?.split("@")[0] ||
     "Músico";
   const { data, error } = await supabase
@@ -49,9 +44,7 @@ export async function fetchProfile(userId: string): Promise<Profile | null> {
   };
 }
 
-export async function listPersonalInstruments(
-  userId: string,
-): Promise<PersonalInstrument[]> {
+export async function listPersonalInstruments(userId: string): Promise<PersonalInstrument[]> {
   const { data, error } = await supabase
     .from("user_instruments")
     .select("id,user_id,instrument_name,transpose_offset,is_primary")

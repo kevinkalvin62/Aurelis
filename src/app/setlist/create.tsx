@@ -1,14 +1,7 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import DraggableFlatList from "react-native-draggable-flatlist";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/button";
@@ -51,9 +44,7 @@ export default function CreateSetlistScreen() {
     enabled: Boolean(organizationId && accessMode === "authenticated"),
   });
   const songs = organizationId ? organizationSongs : localSongs;
-  const [mode, setMode] = useState<Mode>(
-    initialMode === "import" ? "import" : "manual",
-  );
+  const [mode, setMode] = useState<Mode>(initialMode === "import" ? "import" : "manual");
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
   const [notes, setNotes] = useState("");
@@ -61,10 +52,7 @@ export default function CreateSetlistScreen() {
   const [freeTitle, setFreeTitle] = useState("");
   const [entries, setEntries] = useState<DraftEntry[]>([]);
   const [saving, setSaving] = useState(false);
-  const parsed = useMemo(
-    () => parsePastedSetlist(source, songs),
-    [source, songs],
-  );
+  const parsed = useMemo(() => parsePastedSetlist(source, songs), [source, songs]);
 
   const addFreeEntry = () => {
     const value = freeTitle.trim();
@@ -72,10 +60,7 @@ export default function CreateSetlistScreen() {
       toast.warning("Escribe el nombre de la canción.");
       return;
     }
-    setEntries((current) => [
-      ...current,
-      { clientId: entryId(), titleSnapshot: value },
-    ]);
+    setEntries((current) => [...current, { clientId: entryId(), titleSnapshot: value }]);
     setFreeTitle("");
     toast.info("Canción agregada como texto libre.");
   };
@@ -109,9 +94,7 @@ export default function CreateSetlistScreen() {
     );
     const linked = parsed.matches.filter((match) => match.song).length;
     const free = parsed.matches.length - linked;
-    toast.info(
-      `${linked} coincidencias; ${free} canciones se conservarán como texto libre.`,
-    );
+    toast.info(`${linked} coincidencias; ${free} canciones se conservarán como texto libre.`);
   };
   const move = (clientId: string, delta: number) =>
     setEntries((current) => {
@@ -123,9 +106,7 @@ export default function CreateSetlistScreen() {
       return copy;
     });
   const remove = (clientId: string) =>
-    setEntries((current) =>
-      current.filter((item) => item.clientId !== clientId),
-    );
+    setEntries((current) => current.filter((item) => item.clientId !== clientId));
 
   const submit = async () => {
     if (title.trim().length < 2) {
@@ -207,10 +188,7 @@ export default function CreateSetlistScreen() {
           onPress={submit}
         />
       </View>
-      <ScrollView
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
-      >
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.modeTabs}>
           <Pressable
             onPress={() => setMode("manual")}
@@ -241,9 +219,7 @@ export default function CreateSetlistScreen() {
           <View style={{ flex: 1 }}>
             <Text style={styles.label}>CONTEXTO</Text>
             <View style={styles.context}>
-              <Text style={styles.contextText}>
-                {organizationId ? "Organización" : "Local"}
-              </Text>
+              <Text style={styles.contextText}>{organizationId ? "Organización" : "Local"}</Text>
             </View>
           </View>
         </View>
@@ -279,12 +255,7 @@ export default function CreateSetlistScreen() {
                     <Text style={styles.matchLine}>
                       {index + 1}. {match.line}
                     </Text>
-                    <Text
-                      style={[
-                        styles.matchResult,
-                        !match.song && styles.unmatched,
-                      ]}
-                    >
+                    <Text style={[styles.matchResult, !match.song && styles.unmatched]}>
                       {match.song
                         ? `Recurso encontrado: ${match.song.title}`
                         : "Se conservará como texto libre"}
@@ -310,11 +281,7 @@ export default function CreateSetlistScreen() {
             </View>
             <Text style={styles.label}>RECURSOS DISPONIBLES (OPCIONALES)</Text>
             {songs.map((song) => (
-              <Pressable
-                key={song.id}
-                onPress={() => addLibrarySong(song)}
-                style={styles.songRow}
-              >
+              <Pressable key={song.id} onPress={() => addLibrarySong(song)} style={styles.songRow}>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.songTitle}>{song.title}</Text>
                   <Text style={styles.songMeta}>
@@ -326,8 +293,7 @@ export default function CreateSetlistScreen() {
             ))}
             {!songs.length ? (
               <Text style={styles.empty}>
-                La biblioteca está vacía; puedes crear el programa con canciones
-                libres.
+                La biblioteca está vacía; puedes crear el programa con canciones libres.
               </Text>
             ) : null}
           </>
@@ -342,12 +308,8 @@ export default function CreateSetlistScreen() {
               <Text style={styles.position}>{index + 1}</Text>
               <View style={{ flex: 1 }}>
                 <Text style={styles.songTitle}>{item.titleSnapshot}</Text>
-                <Text
-                  style={[styles.linkState, !item.songId && styles.unmatched]}
-                >
-                  {item.songId
-                    ? "Vinculada a biblioteca"
-                    : "Texto libre · recursos opcionales"}
+                <Text style={[styles.linkState, !item.songId && styles.unmatched]}>
+                  {item.songId ? "Vinculada a biblioteca" : "Texto libre · recursos opcionales"}
                 </Text>
               </View>
               <Pressable onPress={() => move(item.clientId, -1)}>
@@ -380,15 +342,8 @@ export default function CreateSetlistScreen() {
                   <Text style={styles.position}>{index + 1}</Text>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.songTitle}>{item.titleSnapshot}</Text>
-                    <Text
-                      style={[
-                        styles.linkState,
-                        !item.songId && styles.unmatched,
-                      ]}
-                    >
-                      {item.songId
-                        ? "Vinculada a biblioteca"
-                        : "Texto libre · recursos opcionales"}
+                    <Text style={[styles.linkState, !item.songId && styles.unmatched]}>
+                      {item.songId ? "Vinculada a biblioteca" : "Texto libre · recursos opcionales"}
                     </Text>
                   </View>
                   <Pressable onPress={() => remove(item.clientId)} hitSlop={8}>

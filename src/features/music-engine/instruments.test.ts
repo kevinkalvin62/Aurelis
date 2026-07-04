@@ -14,24 +14,14 @@ describe("instrument-to-instrument transposition", () => {
   });
   it("does not double transpose material already written for the target", () => {
     expect(shouldTranspose("Trompeta Bb", "Trompeta Bb")).toBe(false);
-    expect(
-      transposeContentBetweenInstruments(
-        "D E F#",
-        "Trompeta Bb",
-        "Trompeta Bb",
-      ),
-    ).toBe("D E F#");
+    expect(transposeContentBetweenInstruments("D E F#", "Trompeta Bb", "Trompeta Bb")).toBe(
+      "D E F#",
+    );
   });
   it("moves from source offset to target offset", () => {
-    expect(
-      getTransposeDeltaBetweenInstruments("Sax Alto Eb", "Trompeta Bb"),
-    ).toBe(-7);
-    expect(
-      transposeContentBetweenInstruments(
-        "A B C#",
-        "Sax Alto Eb",
-        "Trompeta Bb",
-      ),
-    ).toBe("D E Gb");
+    expect(getTransposeDeltaBetweenInstruments("Sax Alto Eb", "Trompeta Bb")).toBe(-7);
+    expect(transposeContentBetweenInstruments("A B C#", "Sax Alto Eb", "Trompeta Bb")).toBe(
+      "D E Gb",
+    );
   });
 });

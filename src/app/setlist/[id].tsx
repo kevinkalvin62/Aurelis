@@ -29,15 +29,11 @@ export default function SetlistDetailScreen() {
   }>();
   const user = useAuthStore((state) => state.user);
   const queryClient = useQueryClient();
-  const localSetlist = useSetlistStore((state) =>
-    state.setlists.find((item) => item.id === id),
-  );
+  const localSetlist = useSetlistStore((state) => state.setlists.find((item) => item.id === id));
   const linkLocalItem = useSetlistStore((state) => state.linkItem);
   const localSongs = useSongStore((state) => state.songs);
   const [linkingItem, setLinkingItem] = useState<string | null>(null);
-  const [selectedInstrumentId, setSelectedInstrumentId] = useState<
-    "all" | string
-  >("all");
+  const [selectedInstrumentId, setSelectedInstrumentId] = useState<"all" | string>("all");
   const { data: remoteSetlists = [] } = useQuery({
     queryKey: ["organization-setlists", organizationId],
     queryFn: () => listOrganizationSetlists(organizationId!),
@@ -71,8 +67,7 @@ export default function SetlistDetailScreen() {
         id: `${id}-legacy-${position}`,
         setlistId: id,
         songId,
-        titleSnapshot:
-          songs.find((song) => song.id === songId)?.title ?? "Canción",
+        titleSnapshot: songs.find((song) => song.id === songId)?.title ?? "Canción",
         position,
       })),
     [id, setlist, songs],
@@ -83,38 +78,27 @@ export default function SetlistDetailScreen() {
     membership?.role === "owner" ||
     membership?.role === "admin" ||
     membership?.role === "director";
-  const assignedInstruments = organizationId
-    ? (membership?.instruments ?? [])
-    : personalInstruments;
+  const assignedInstruments = useMemo(
+    () => (organizationId ? (membership?.instruments ?? []) : personalInstruments),
+    [organizationId, membership?.instruments, personalInstruments],
+  );
   useEffect(() => {
     const preferred =
-      assignedInstruments.find((instrument) => instrument.isPrimary) ??
-      assignedInstruments[0];
+      assignedInstruments.find((instrument) => instrument.isPrimary) ?? assignedInstruments[0];
+    // Account and membership changes intentionally reset the active instrument.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSelectedInstrumentId(preferred?.instrumentId ?? "all");
-  }, [organizationId, user?.id, assignedInstruments.length]);
+  }, [organizationId, user?.id, assignedInstruments]);
   const activeInstrument =
     selectedInstrumentId === "all"
       ? undefined
-      : assignedInstruments.find(
-          (instrument) => instrument.instrumentId === selectedInstrumentId,
-        );
-  const transpose = activeInstrument
-    ? getInstrumentTransposeOffset(activeInstrument)
-    : 0;
-  const linkedRemoteIds = remoteSongs.flatMap((song) =>
-    song.remoteId ? [song.remoteId] : [],
-  );
+      : assignedInstruments.find((instrument) => instrument.instrumentId === selectedInstrumentId);
+  const transpose = activeInstrument ? getInstrumentTransposeOffset(activeInstrument) : 0;
+  const linkedRemoteIds = remoteSongs.flatMap((song) => (song.remoteId ? [song.remoteId] : []));
   const { data: materials = [] } = useQuery({
-    queryKey: [
-      "instrument-materials",
-      activeInstrument?.instrumentId,
-      linkedRemoteIds.join(","),
-    ],
-    queryFn: () =>
-      listInstrumentMaterials(linkedRemoteIds, activeInstrument?.instrumentId),
-    enabled: Boolean(
-      organizationId && activeInstrument && linkedRemoteIds.length,
-    ),
+    queryKey: ["instrument-materials", activeInstrument?.instrumentId, linkedRemoteIds.join(",")],
+    queryFn: () => listInstrumentMaterials(linkedRemoteIds, activeInstrument?.instrumentId),
+    enabled: Boolean(organizationId && activeInstrument && linkedRemoteIds.length),
   });
 
   const linkItem = async (item: SetlistItem, songId: string) => {
@@ -148,9 +132,7 @@ export default function SetlistDetailScreen() {
         <View style={{ width: 30 }} />
       </View>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.eyebrow}>
-          {formatFriendlyDate(setlist?.serviceDate).toUpperCase()}
-        </Text>
+        <Text style={styles.eyebrow}>{formatFriendlyDate(setlist?.serviceDate).toUpperCase()}</Text>
         <Text style={styles.title}>{setlist?.title ?? "Programa"}</Text>
         {setlist?.notes ? (
           <View style={styles.notes}>
@@ -166,8 +148,7 @@ export default function SetlistDetailScreen() {
                 onPress={() => setSelectedInstrumentId("all")}
                 style={[
                   styles.instrumentFilter,
-                  selectedInstrumentId === "all" &&
-                    styles.instrumentFilterActive,
+                  selectedInstrumentId === "all" && styles.instrumentFilterActive,
                 ]}
               >
                 <Text style={styles.instrumentFilterText}>Todos</Text>
@@ -175,9 +156,7 @@ export default function SetlistDetailScreen() {
               {assignedInstruments.map((instrument) => (
                 <Pressable
                   key={instrument.id}
-                  onPress={() =>
-                    setSelectedInstrumentId(instrument.instrumentId)
-                  }
+                  onPress={() => setSelectedInstrumentId(instrument.instrumentId)}
                   style={[
                     styles.instrumentFilter,
                     selectedInstrumentId === instrument.instrumentId &&
@@ -200,9 +179,7 @@ export default function SetlistDetailScreen() {
             </Text>
           </View>
         ) : null}
-        <Text style={styles.section}>
-          {items.length} CANCIONES · ORDEN DEL EVENTO
-        </Text>
+        <Text style={styles.section}>{items.length} CANCIONES · ORDEN DEL EVENTO</Text>
         <View style={styles.list}>
           {items.map((item, index) => {
             const song = item.songId
@@ -232,21 +209,16 @@ export default function SetlistDetailScreen() {
                     {material ? (
                       <View style={styles.material}>
                         <Text style={styles.materialLabel}>
-                          {material.instrumentName.toUpperCase()} ·{" "}
-                          {material.key ?? song.key}
+                          {material.instrumentName.toUpperCase()} · {material.key ?? song.key}
                           {material.adaptedFromInstrumentName
                             ? ` · ADAPTADO DE ${material.adaptedFromInstrumentName.toUpperCase()}`
                             : ""}
                         </Text>
                         {material.contentRaw ? (
-                          <Text style={styles.materialContent}>
-                            {material.contentRaw}
-                          </Text>
+                          <Text style={styles.materialContent}>{material.contentRaw}</Text>
                         ) : null}
                         {material.notes ? (
-                          <Text style={styles.materialNotes}>
-                            {material.notes}
-                          </Text>
+                          <Text style={styles.materialNotes}>{material.notes}</Text>
                         ) : null}
                       </View>
                     ) : organizationId && activeInstrument ? (
@@ -268,17 +240,11 @@ export default function SetlistDetailScreen() {
                       <Text style={styles.freeCopy}>
                         Sin recurso vinculado · permanece en el programa
                       </Text>
-                      {item.notes ? (
-                        <Text style={styles.itemNotes}>{item.notes}</Text>
-                      ) : null}
+                      {item.notes ? <Text style={styles.itemNotes}>{item.notes}</Text> : null}
                     </View>
                     {canManage ? (
                       <Pressable
-                        onPress={() =>
-                          setLinkingItem(
-                            linkingItem === item.id ? null : item.id,
-                          )
-                        }
+                        onPress={() => setLinkingItem(linkingItem === item.id ? null : item.id)}
                       >
                         <Text style={styles.linkAction}>Vincular</Text>
                       </Pressable>
@@ -294,9 +260,7 @@ export default function SetlistDetailScreen() {
                           onPress={() => linkItem(item, candidate.id)}
                           style={styles.linkOption}
                         >
-                          <Text style={styles.linkOptionTitle}>
-                            {candidate.title}
-                          </Text>
+                          <Text style={styles.linkOptionTitle}>{candidate.title}</Text>
                           <Text style={styles.linkOptionMeta}>
                             {candidate.artist || "Sin autor"} · {candidate.key}
                           </Text>
@@ -304,8 +268,8 @@ export default function SetlistDetailScreen() {
                       ))
                     ) : (
                       <Text style={styles.noResources}>
-                        La biblioteca todavía está vacía. Esta canción seguirá
-                        disponible como texto libre.
+                        La biblioteca todavía está vacía. Esta canción seguirá disponible como texto
+                        libre.
                       </Text>
                     )}
                   </View>
@@ -315,9 +279,7 @@ export default function SetlistDetailScreen() {
           })}
         </View>
         {!items.length ? (
-          <Text style={styles.empty}>
-            Este programa aún no tiene canciones.
-          </Text>
+          <Text style={styles.empty}>Este programa aún no tiene canciones.</Text>
         ) : null}
       </ScrollView>
     </SafeAreaView>

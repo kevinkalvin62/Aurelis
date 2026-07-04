@@ -2,10 +2,10 @@
 
 ## Cliente Expo
 
-| Variable | Obligatoria | Sensibilidad | Uso |
-|---|---:|---|---|
-| `EXPO_PUBLIC_SUPABASE_URL` | sí para cuenta | pública | URL de API/Auth |
-| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | sí para cuenta | pública | publishable/anon key protegida por RLS |
+| Variable                        |    Obligatoria | Sensibilidad | Uso                                    |
+| ------------------------------- | -------------: | ------------ | -------------------------------------- |
+| `EXPO_PUBLIC_SUPABASE_URL`      | sí para cuenta | pública      | URL de API/Auth                        |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | sí para cuenta | pública      | publishable/anon key protegida por RLS |
 
 El prefijo `EXPO_PUBLIC_` incorpora el valor en el bundle. No ofrece secreto.
 Nunca debe utilizarse para `service_role`, tokens personales, contraseñas de DB

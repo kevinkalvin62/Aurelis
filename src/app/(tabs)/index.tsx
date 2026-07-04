@@ -16,10 +16,7 @@ import { selectNextSetlist } from "@/features/setlists/next-setlist";
 
 export default function HomeScreen() {
   const allSongs = useSongStore((state) => state.songs);
-  const songs = useMemo(
-    () => allSongs.filter((song) => !song.organizationId),
-    [allSongs],
-  );
+  const songs = useMemo(() => allSongs.filter((song) => !song.organizationId), [allSongs]);
   const setlists = useSetlistStore((state) => state.setlists);
   const { accessMode, user } = useAuthStore();
   const { data: organizationSetlists = [] } = useQuery({
@@ -28,10 +25,8 @@ export default function HomeScreen() {
     enabled: accessMode === "authenticated",
   });
   const next = selectNextSetlist([...setlists, ...organizationSetlists]);
-  const displayName =
-    accessMode === "guest" ? "Invitado" : user?.name || "Músico";
-  const initials =
-    accessMode === "guest" ? "IN" : displayName.slice(0, 2).toUpperCase();
+  const displayName = accessMode === "guest" ? "Invitado" : user?.name || "Músico";
+  const initials = accessMode === "guest" ? "IN" : displayName.slice(0, 2).toUpperCase();
   const dateLabel = new Intl.DateTimeFormat("es-MX", {
     weekday: "long",
     day: "numeric",
@@ -64,14 +59,11 @@ export default function HomeScreen() {
             </View>
             <Text style={styles.heroTitle}>{next.title}</Text>
             <Text style={styles.heroMeta}>
-              {next.dateLabel} ·{" "}
-              {(next.organizationName ?? next.location) || "Personal"}
+              {next.dateLabel} · {(next.organizationName ?? next.location) || "Personal"}
             </Text>
             <View style={styles.heroBottom}>
               <View>
-                <Text style={styles.heroNumber}>
-                  {next.items?.length ?? next.songIds.length}
-                </Text>
+                <Text style={styles.heroNumber}>{next.items?.length ?? next.songIds.length}</Text>
                 <Text style={styles.heroCaption}>CANCIONES</Text>
               </View>
               <View style={styles.rule} />
@@ -88,9 +80,7 @@ export default function HomeScreen() {
                     pathname: "/setlist/[id]",
                     params: {
                       id: next.id,
-                      ...(next.organizationId
-                        ? { organizationId: next.organizationId }
-                        : {}),
+                      ...(next.organizationId ? { organizationId: next.organizationId } : {}),
                     },
                   })
                 }
@@ -99,32 +89,22 @@ export default function HomeScreen() {
           </LinearGradient>
         </View>
       ) : (
-        <Pressable
-          onPress={() => router.push("/setlists")}
-          style={styles.emptyHero}
-        >
+        <Pressable onPress={() => router.push("/setlists")} style={styles.emptyHero}>
           <Text style={styles.heroEyebrow}>TU PRÓXIMO PROGRAMA</Text>
           <Text style={styles.emptyHeroTitle}>Aún no tienes programas</Text>
           <Text style={styles.emptyHeroCopy}>
-            Crea una lista local o inicia sesión para trabajar con tu
-            organización.
+            Crea una lista local o inicia sesión para trabajar con tu organización.
           </Text>
         </Pressable>
       )}
 
       <View style={styles.quickRow}>
-        <Pressable
-          onPress={() => router.push("/editor")}
-          style={styles.quickCard}
-        >
+        <Pressable onPress={() => router.push("/editor")} style={styles.quickCard}>
           <Text style={styles.quickMark}>＋</Text>
           <Text style={styles.quickTitle}>Nueva canción</Text>
           <Text style={styles.quickCopy}>Letra y acordes</Text>
         </Pressable>
-        <Pressable
-          onPress={() => router.push("/library")}
-          style={styles.quickCard}
-        >
+        <Pressable onPress={() => router.push("/library")} style={styles.quickCard}>
           <Text style={styles.quickMark}>♯</Text>
           <Text style={styles.quickTitle}>Transportar</Text>
           <Text style={styles.quickCopy}>Cualquier tonalidad</Text>
@@ -147,10 +127,7 @@ export default function HomeScreen() {
           ))}
         </View>
       ) : (
-        <Pressable
-          onPress={() => router.push("/editor")}
-          style={styles.emptyLibrary}
-        >
+        <Pressable onPress={() => router.push("/editor")} style={styles.emptyLibrary}>
           <Text style={styles.insightMark}>A</Text>
           <View style={{ flex: 1 }}>
             <Text style={styles.insightTitle}>Crea tu primera canción</Text>

@@ -42,18 +42,13 @@ export async function listMyOrganizations(): Promise<Organization[]> {
             slug: String(org.slug),
             type: org.type as OrganizationType,
             ownerId,
-            role:
-              ownerId === authData.user.id
-                ? "owner"
-                : (row.role as OrganizationRole),
+            role: ownerId === authData.user.id ? "owner" : (row.role as OrganizationRole),
           },
         ]
       : [];
   });
   return [
-    ...new Map(
-      organizations.map((organization) => [organization.id, organization]),
-    ).values(),
+    ...new Map(organizations.map((organization) => [organization.id, organization])).values(),
   ];
 }
 
@@ -63,8 +58,7 @@ export async function createOrganization(
   type: OrganizationType,
 ): Promise<ServiceResult<Organization>> {
   const { data: authData, error: authError } = await supabase.auth.getUser();
-  if (authError || !authData.user)
-    return { error: "Tu sesión expiró. Inicia sesión nuevamente." };
+  if (authError || !authData.user) return { error: "Tu sesión expiró. Inicia sesión nuevamente." };
   const userId = authData.user.id;
   const { data, error } = await supabase
     .from("organizations")
@@ -73,9 +67,7 @@ export async function createOrganization(
     .single();
   if (error || !data)
     return {
-      error: friendlyOrgError(
-        error?.message ?? "No fue posible crear la organización.",
-      ),
+      error: friendlyOrgError(error?.message ?? "No fue posible crear la organización."),
     };
   const { error: memberError } = await supabase
     .from("organization_members")
@@ -113,9 +105,7 @@ export async function listInstruments(): Promise<Instrument[]> {
   return (data ?? []).map((row: any) => ({
     id: String(row.id),
     name: String(row.name),
-    ...(row.transposition_key
-      ? { transpositionKey: String(row.transposition_key) }
-      : {}),
+    ...(row.transposition_key ? { transpositionKey: String(row.transposition_key) } : {}),
     writtenOffset: Number(row.written_offset ?? 0),
   }));
 }
@@ -135,23 +125,16 @@ export async function listOrganizationMembers(
   ]);
   if (error) throw new Error(error.message);
   if (memberInstruments.error) throw new Error(memberInstruments.error.message);
-  const catalog = new Map(
-    instruments.map((instrument) => [instrument.id, instrument]),
-  );
-  const assignments = (memberInstruments.data ?? []).map(
-    (row: any): MemberInstrument => ({
-      id: String(row.id),
-      organizationMemberId: String(row.organization_member_id),
-      instrumentId: String(row.instrument_id),
-      instrumentName:
-        catalog.get(String(row.instrument_id))?.name ?? "Instrumento",
-      ...(row.transposition_key
-        ? { transpositionKey: String(row.transposition_key) }
-        : {}),
-      isPrimary: Boolean(row.is_primary),
-      writtenOffset: catalog.get(String(row.instrument_id))?.writtenOffset ?? 0,
-    }),
-  );
+  const catalog = new Map(instruments.map((instrument) => [instrument.id, instrument]));
+  const assignments = (memberInstruments.data ?? []).map((row: any): MemberInstrument => ({
+    id: String(row.id),
+    organizationMemberId: String(row.organization_member_id),
+    instrumentId: String(row.instrument_id),
+    instrumentName: catalog.get(String(row.instrument_id))?.name ?? "Instrumento",
+    ...(row.transposition_key ? { transpositionKey: String(row.transposition_key) } : {}),
+    isPrimary: Boolean(row.is_primary),
+    writtenOffset: catalog.get(String(row.instrument_id))?.writtenOffset ?? 0,
+  }));
   return (data ?? []).map((row: any): OrganizationMember => ({
     id: String(row.member_id),
     organizationId,
@@ -224,19 +207,12 @@ export async function saveMemberInstruments(
   return null;
 }
 
-export async function removeOrganizationMember(
-  memberId: string,
-): Promise<string | null> {
-  const { error } = await supabase
-    .from("organization_members")
-    .delete()
-    .eq("id", memberId);
+export async function removeOrganizationMember(memberId: string): Promise<string | null> {
+  const { error } = await supabase.from("organization_members").delete().eq("id", memberId);
   return error ? friendlyOrgError(error.message) : null;
 }
 
-export async function listOrganizationSongs(
-  organizationId: string,
-): Promise<Song[]> {
+export async function listOrganizationSongs(organizationId: string): Promise<Song[]> {
   const { data, error } = await supabase
     .from("songs")
     .select(REMOTE_SONG_SELECT)
@@ -246,9 +222,7 @@ export async function listOrganizationSongs(
   return ((data as RemoteSongRow[]) ?? []).map(mapRemoteSong);
 }
 
-export async function listOrganizationSetlists(
-  organizationId: string,
-): Promise<Setlist[]> {
+export async function listOrganizationSetlists(organizationId: string): Promise<Setlist[]> {
   const { data, error } = await supabase
     .from("setlists")
     .select(
@@ -286,23 +260,18 @@ export async function listMyInstruments(
     listInstruments(),
   ]);
   if (error) throw new Error(error.message);
-  const instruments = new Map(
-    catalog.map((instrument) => [instrument.id, instrument]),
-  );
+  const instruments = new Map(catalog.map((instrument) => [instrument.id, instrument]));
   return (data ?? []).flatMap((row: any) =>
     (row.member_instruments ?? []).map((instrument: any) => ({
       id: String(instrument.id),
       organizationMemberId: String(row.id),
       instrumentId: String(instrument.instrument_id),
-      instrumentName:
-        instruments.get(String(instrument.instrument_id))?.name ??
-        "Instrumento",
+      instrumentName: instruments.get(String(instrument.instrument_id))?.name ?? "Instrumento",
       ...(instrument.transposition_key
         ? { transpositionKey: String(instrument.transposition_key) }
         : {}),
       isPrimary: Boolean(instrument.is_primary),
-      writtenOffset:
-        instruments.get(String(instrument.instrument_id))?.writtenOffset ?? 0,
+      writtenOffset: instruments.get(String(instrument.instrument_id))?.writtenOffset ?? 0,
       organizationName: String(row.organizations.name),
     })),
   );
@@ -323,17 +292,11 @@ export async function listInstrumentMaterials(
   if (error) throw new Error(error.message);
   const target = catalog.find((instrument) => instrument.id === instrumentId);
   if (!target) return [];
-  const instruments = new Map(
-    catalog.map((instrument) => [instrument.id, instrument]),
-  );
+  const instruments = new Map(catalog.map((instrument) => [instrument.id, instrument]));
   return songRemoteIds.flatMap((songId): InstrumentMaterial[] => {
-    const songParts = (data ?? []).filter(
-      (row: any) => String(row.song_id) === songId,
-    );
+    const songParts = (data ?? []).filter((row: any) => String(row.song_id) === songId);
     const row =
-      songParts.find(
-        (part: any) => String(part.instrument_id) === instrumentId,
-      ) ?? songParts[0];
+      songParts.find((part: any) => String(part.instrument_id) === instrumentId) ?? songParts[0];
     if (!row) return [];
     const source = instruments.get(String(row.instrument_id));
     if (!source) return [];
@@ -389,9 +352,7 @@ function mapRemoteSetlist(row: any, organizationName?: string): Setlist {
     organizationId: String(row.organization_id),
     ...(organizationName ? { organizationName } : {}),
     title: String(row.title),
-    dateLabel: formatFriendlyDate(
-      row.service_date ? String(row.service_date) : undefined,
-    ),
+    dateLabel: formatFriendlyDate(row.service_date ? String(row.service_date) : undefined),
     ...(row.service_date ? { serviceDate: String(row.service_date) } : {}),
     time: "Por definir",
     location: organizationName ?? "",
@@ -406,12 +367,10 @@ function mapRemoteSetlist(row: any, organizationName?: string): Setlist {
 
 function friendlyOrgError(message: string): string {
   const text = message.toLowerCase();
-  if (text.includes("profile not found"))
-    return "No existe una cuenta registrada con ese correo.";
+  if (text.includes("profile not found")) return "No existe una cuenta registrada con ese correo.";
   if (text.includes("duplicate") || text.includes("unique"))
     return "Ese nombre o slug ya está en uso.";
-  if (text.includes("permission"))
-    return "No tienes permisos para realizar esta acción.";
+  if (text.includes("permission")) return "No tienes permisos para realizar esta acción.";
   return message;
 }
 

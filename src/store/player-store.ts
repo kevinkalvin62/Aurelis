@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
 interface PlayerState {
   semitones: number;
@@ -14,6 +14,7 @@ export const usePlayerStore = create<PlayerState>((set) => ({
   fontScale: 1,
   presentationMode: false,
   setSemitones: (semitones) => set({ semitones }),
-  changeFontScale: (delta) => set((state) => ({ fontScale: Math.max(0.8, Math.min(1.6, state.fontScale + delta)) })),
+  changeFontScale: (delta) =>
+    set((state) => ({ fontScale: Math.max(0.8, Math.min(1.6, state.fontScale + delta)) })),
   togglePresentationMode: () => set((state) => ({ presentationMode: !state.presentationMode })),
 }));

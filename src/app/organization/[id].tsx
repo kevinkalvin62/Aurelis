@@ -1,15 +1,7 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { SongRow } from "@/components/song-row";
 import { Button } from "@/components/ui/button";
@@ -47,12 +39,8 @@ export default function OrganizationScreen() {
   const [email, setEmail] = useState("");
   const [adding, setAdding] = useState(false);
   const [instrumentMember, setInstrumentMember] = useState<string | null>(null);
-  const [selectedInstrumentIds, setSelectedInstrumentIds] = useState<string[]>(
-    [],
-  );
-  const [primaryInstrumentId, setPrimaryInstrumentId] = useState<
-    string | undefined
-  >();
+  const [selectedInstrumentIds, setSelectedInstrumentIds] = useState<string[]>([]);
+  const [primaryInstrumentId, setPrimaryInstrumentId] = useState<string | undefined>();
   const [savingInstruments, setSavingInstruments] = useState(false);
   const { data: organizations = [] } = useQuery({
     queryKey: ["organizations", user?.id],
@@ -137,13 +125,10 @@ export default function OrganizationScreen() {
       setInstrumentMember(null);
       return;
     }
-    const selected = member.instruments.map(
-      (instrument) => instrument.instrumentId,
-    );
+    const selected = member.instruments.map((instrument) => instrument.instrumentId);
     setSelectedInstrumentIds(selected);
     setPrimaryInstrumentId(
-      member.instruments.find((instrument) => instrument.isPrimary)
-        ?.instrumentId ?? selected[0],
+      member.instruments.find((instrument) => instrument.isPrimary)?.instrumentId ?? selected[0],
     );
     setInstrumentMember(member.id);
   };
@@ -152,19 +137,14 @@ export default function OrganizationScreen() {
       ? selectedInstrumentIds.filter((id) => id !== instrumentId)
       : [...selectedInstrumentIds, instrumentId];
     setSelectedInstrumentIds(selected);
-    if (!selected.includes(primaryInstrumentId ?? ""))
-      setPrimaryInstrumentId(selected[0]);
+    if (!selected.includes(primaryInstrumentId ?? "")) setPrimaryInstrumentId(selected[0]);
   };
   const saveInstruments = async (memberId: string) => {
     setSavingInstruments(true);
     const selected = instruments.filter((instrument) =>
       selectedInstrumentIds.includes(instrument.id),
     );
-    const error = await saveMemberInstruments(
-      memberId,
-      selected,
-      primaryInstrumentId,
-    );
+    const error = await saveMemberInstruments(memberId, selected, primaryInstrumentId);
     setSavingInstruments(false);
     if (error) {
       toast.error(error);
@@ -177,30 +157,26 @@ export default function OrganizationScreen() {
     toast.success("Instrumentos actualizados.");
   };
   const removeMember = (memberId: string, displayName: string) =>
-    Alert.alert(
-      "Eliminar integrante",
-      `¿Eliminar a ${displayName} de esta organización?`,
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Eliminar",
-          style: "destructive",
-          onPress: () => {
-            void (async () => {
-              const error = await removeOrganizationMember(memberId);
-              if (error) {
-                toast.error(error);
-                return;
-              }
-              await queryClient.invalidateQueries({
-                queryKey: ["organization-members", id],
-              });
-              toast.success("Integrante eliminado.");
-            })();
-          },
+    Alert.alert("Eliminar integrante", `¿Eliminar a ${displayName} de esta organización?`, [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Eliminar",
+        style: "destructive",
+        onPress: () => {
+          void (async () => {
+            const error = await removeOrganizationMember(memberId);
+            if (error) {
+              toast.error(error);
+              return;
+            }
+            await queryClient.invalidateQueries({
+              queryKey: ["organization-members", id],
+            });
+            toast.success("Integrante eliminado.");
+          })();
         },
-      ],
-    );
+      },
+    ]);
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -209,12 +185,8 @@ export default function OrganizationScreen() {
           <Text style={styles.backText}>‹</Text>
         </Pressable>
         <View style={{ flex: 1 }}>
-          <Text style={styles.navTitle}>
-            {organization?.name ?? "Organización"}
-          </Text>
-          <Text style={styles.navMeta}>
-            Tu rol: {organizationRoleLabel(organization?.role)}
-          </Text>
+          <Text style={styles.navTitle}>{organization?.name ?? "Organización"}</Text>
+          <Text style={styles.navMeta}>Tu rol: {organizationRoleLabel(organization?.role)}</Text>
         </View>
         <View style={styles.orgMark}>
           <Text style={styles.orgLetter}>
@@ -235,31 +207,17 @@ export default function OrganizationScreen() {
             onPress={() => setSection(value)}
             style={[styles.tab, section === value && styles.tabActive]}
           >
-            <Text
-              style={[
-                styles.tabText,
-                section === value && styles.tabTextActive,
-              ]}
-            >
-              {label}
-            </Text>
+            <Text style={[styles.tabText, section === value && styles.tabTextActive]}>{label}</Text>
           </Pressable>
         ))}
       </View>
-      <ScrollView
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {section === "library" ? (
           <>
             <View style={styles.sectionHead}>
               <View>
-                <Text style={styles.eyebrow}>
-                  BIBLIOTECA DE LA ORGANIZACIÓN
-                </Text>
-                <Text style={styles.sectionTitle}>
-                  {songs.length} canciones compartidas
-                </Text>
+                <Text style={styles.eyebrow}>BIBLIOTECA DE LA ORGANIZACIÓN</Text>
+                <Text style={styles.sectionTitle}>{songs.length} canciones compartidas</Text>
               </View>
               {canAddSong ? (
                 <Button
@@ -296,18 +254,14 @@ export default function OrganizationScreen() {
                         }
                         style={styles.materialLink}
                       >
-                        <Text style={styles.materialLinkText}>
-                          ＋ Material por instrumento
-                        </Text>
+                        <Text style={styles.materialLinkText}>＋ Material por instrumento</Text>
                       </Pressable>
                     ) : null}
                   </View>
                 ))}
               </View>
             ) : (
-              <Text style={styles.empty}>
-                Esta organización todavía no tiene canciones.
-              </Text>
+              <Text style={styles.empty}>Esta organización todavía no tiene canciones.</Text>
             )}
           </>
         ) : null}
@@ -316,9 +270,7 @@ export default function OrganizationScreen() {
             <View style={styles.sectionHead}>
               <View>
                 <Text style={styles.eyebrow}>PROGRAMAS</Text>
-                <Text style={styles.sectionTitle}>
-                  {setlists.length} programas
-                </Text>
+                <Text style={styles.sectionTitle}>{setlists.length} programas</Text>
               </View>
               {canDirect ? (
                 <Button
@@ -349,17 +301,14 @@ export default function OrganizationScreen() {
                     <Text style={styles.rowTitle}>{setlist.title}</Text>
                     <Text style={styles.rowCopy}>
                       {formatFriendlyDate(setlist.serviceDate)} ·{" "}
-                      {setlist.items?.length ?? setlist.songIds.length}{" "}
-                      canciones
+                      {setlist.items?.length ?? setlist.songIds.length} canciones
                     </Text>
                   </View>
                   <Text style={styles.chevron}>›</Text>
                 </Pressable>
               ))
             ) : (
-              <Text style={styles.empty}>
-                Aún no hay programas para esta organización.
-              </Text>
+              <Text style={styles.empty}>Aún no hay programas para esta organización.</Text>
             )}
           </>
         ) : null}
@@ -368,9 +317,7 @@ export default function OrganizationScreen() {
             <View style={styles.sectionHead}>
               <View>
                 <Text style={styles.eyebrow}>EQUIPO</Text>
-                <Text style={styles.sectionTitle}>
-                  {members.length} integrantes
-                </Text>
+                <Text style={styles.sectionTitle}>{members.length} integrantes</Text>
               </View>
             </View>
             {canDirect ? (
@@ -424,8 +371,7 @@ export default function OrganizationScreen() {
                         <View key={instrument.id} style={styles.instrumentChip}>
                           <Text style={styles.chipText}>
                             {instrument.isPrimary ? "★ " : ""}
-                            {instrument.instrumentName} ·{" "}
-                            {instrument.transpositionKey ?? "C"}
+                            {instrument.instrumentName} · {instrument.transpositionKey ?? "C"}
                           </Text>
                         </View>
                       ))}
@@ -433,32 +379,21 @@ export default function OrganizationScreen() {
                   ) : null}
                   {canAdmin && member.role !== "owner" ? (
                     <View style={styles.roles}>
-                      {(["admin", "director", "musician"] as const).map(
-                        (role) => (
-                          <Pressable
-                            key={role}
-                            onPress={() => changeRole(member.id, role)}
-                            style={[
-                              styles.role,
-                              member.role === role && styles.roleActive,
-                            ]}
-                          >
-                            <Text style={styles.roleText}>
-                              {organizationRoleLabel(role)}
-                            </Text>
-                          </Pressable>
-                        ),
-                      )}
+                      {(["admin", "director", "musician"] as const).map((role) => (
+                        <Pressable
+                          key={role}
+                          onPress={() => changeRole(member.id, role)}
+                          style={[styles.role, member.role === role && styles.roleActive]}
+                        >
+                          <Text style={styles.roleText}>{organizationRoleLabel(role)}</Text>
+                        </Pressable>
+                      ))}
                       {organization?.role === "owner" ? (
                         <Pressable
-                          onPress={() =>
-                            removeMember(member.id, member.displayName)
-                          }
+                          onPress={() => removeMember(member.id, member.displayName)}
                           style={styles.role}
                         >
-                          <Text style={[styles.roleText, { color: "#D06474" }]}>
-                            Eliminar
-                          </Text>
+                          <Text style={[styles.roleText, { color: "#D06474" }]}>Eliminar</Text>
                         </Pressable>
                       ) : null}
                     </View>
@@ -466,28 +401,19 @@ export default function OrganizationScreen() {
                   {instrumentMember === member.id ? (
                     <View style={styles.instrumentPicker}>
                       {instrumentsLoading ? (
-                        <Text style={styles.pickerMessage}>
-                          Cargando instrumentos…
-                        </Text>
+                        <Text style={styles.pickerMessage}>Cargando instrumentos…</Text>
                       ) : instrumentsError ? (
                         <Text style={styles.pickerMessage}>
                           No fue posible cargar los instrumentos.
                         </Text>
                       ) : instruments.length === 0 ? (
-                        <Text style={styles.pickerMessage}>
-                          No hay instrumentos disponibles.
-                        </Text>
+                        <Text style={styles.pickerMessage}>No hay instrumentos disponibles.</Text>
                       ) : (
                         <>
                           {instruments.map((option) => {
-                            const selected = selectedInstrumentIds.includes(
-                              option.id,
-                            );
+                            const selected = selectedInstrumentIds.includes(option.id);
                             return (
-                              <View
-                                key={option.id}
-                                style={styles.instrumentOption}
-                              >
+                              <View key={option.id} style={styles.instrumentOption}>
                                 <Pressable
                                   onPress={() => toggleInstrument(option.id)}
                                   style={styles.instrumentChoice}
@@ -500,18 +426,14 @@ export default function OrganizationScreen() {
                                   >
                                     {selected ? "✓" : ""}
                                   </Text>
-                                  <Text style={styles.optionText}>
-                                    {option.name}
-                                  </Text>
+                                  <Text style={styles.optionText}>{option.name}</Text>
                                   <Text style={styles.optionKey}>
                                     {option.transpositionKey ?? "C"}
                                   </Text>
                                 </Pressable>
                                 {selected ? (
                                   <Pressable
-                                    onPress={() =>
-                                      setPrimaryInstrumentId(option.id)
-                                    }
+                                    onPress={() => setPrimaryInstrumentId(option.id)}
                                     style={styles.primaryChoice}
                                   >
                                     <Text
@@ -536,9 +458,7 @@ export default function OrganizationScreen() {
                             </Text>
                             <Button
                               compact
-                              label={
-                                savingInstruments ? "Guardando…" : "Guardar"
-                              }
+                              label={savingInstruments ? "Guardando…" : "Guardar"}
                               disabled={savingInstruments}
                               onPress={() => saveInstruments(member.id)}
                             />

@@ -24,17 +24,11 @@ export async function syncSong(
   };
   const isNewSong = !song.remoteId;
   const query = song.remoteId
-    ? supabase
-        .from("songs")
-        .update(databasePayload)
-        .eq("id", song.remoteId)
-        .select("id")
-        .single()
+    ? supabase.from("songs").update(databasePayload).eq("id", song.remoteId).select("id").single()
     : supabase.from("songs").insert(databasePayload).select("id").single();
   const { data, error } = await query;
   if (error) return { error: error.message };
-  if (!data?.id)
-    return { error: "Supabase no devolvió el identificador de la canción." };
+  if (!data?.id) return { error: "Supabase no devolvió el identificador de la canción." };
 
   const remoteId = String(data.id);
   const { data: latestVersion, error: versionLookupError } = await supabase
@@ -81,10 +75,7 @@ async function versionFailure(
   error: string,
 ): Promise<{ error: string }> {
   if (removeIncompleteSong) {
-    const { error: cleanupError } = await supabase
-      .from("songs")
-      .delete()
-      .eq("id", remoteId);
+    const { error: cleanupError } = await supabase.from("songs").delete().eq("id", remoteId);
     if (cleanupError)
       return {
         error: `${error} Tampoco fue posible retirar la canción incompleta: ${cleanupError.message}`,
@@ -113,14 +104,10 @@ export async function pullRemoteSongs(userId: string): Promise<void> {
     .is("organization_id", null)
     .order("updated_at", { ascending: false });
   if (error || !data) return;
-  useSongStore
-    .getState()
-    .mergeRemoteSongs((data as RemoteSongRow[]).map(mapRemoteSong));
+  useSongStore.getState().mergeRemoteSongs((data as RemoteSongRow[]).map(mapRemoteSong));
 }
 
-export async function deleteRemoteSong(
-  remoteId: string,
-): Promise<string | null> {
+export async function deleteRemoteSong(remoteId: string): Promise<string | null> {
   const { error } = await supabase.rpc("soft_delete_song", {
     target_song: remoteId,
   });

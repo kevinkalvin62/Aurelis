@@ -2,15 +2,7 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { router, useLocalSearchParams } from "expo-router";
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -37,12 +29,11 @@ const schema = z.object({
 });
 type FormValues = z.infer<typeof schema>;
 
-const contentTypes: { value: SongContentType; label: string; mark: string }[] =
-  [
-    { value: "lyrics_chords", label: "Letra + acordes", mark: "Aa" },
-    { value: "chords_only", label: "Sólo acordes", mark: "♯" },
-    { value: "wind_notes", label: "Notas de viento", mark: "♪" },
-  ];
+const contentTypes: { value: SongContentType; label: string; mark: string }[] = [
+  { value: "lyrics_chords", label: "Letra + acordes", mark: "Aa" },
+  { value: "chords_only", label: "Sólo acordes", mark: "♯" },
+  { value: "wind_notes", label: "Notas de viento", mark: "♪" },
+];
 const notations: { value: MusicNotation; label: string; example: string }[] = [
   { value: "american", label: "Americana", example: "C · D · E" },
   { value: "latin", label: "Latina", example: "DO · RE · MI" },
@@ -110,8 +101,7 @@ export default function EditorScreen() {
       sourceInstrumentName: song?.sourceInstrumentName ?? "Concert",
       contentType: song?.contentType ?? "lyrics_chords",
       notation: song?.notation ?? "american",
-      visibility:
-        song?.visibility ?? (organizationId ? "organization" : "private"),
+      visibility: song?.visibility ?? (organizationId ? "organization" : "private"),
       content: song?.content ?? samples.lyrics_chords.american,
     },
   });
@@ -124,13 +114,11 @@ export default function EditorScreen() {
 
   const chooseContentType = (value: SongContentType) => {
     setValue("contentType", value, { shouldDirty: true });
-    if (!song)
-      setValue("content", samples[value][notation], { shouldDirty: true });
+    if (!song) setValue("content", samples[value][notation], { shouldDirty: true });
   };
   const chooseNotation = (value: MusicNotation) => {
     setValue("notation", value, { shouldDirty: true });
-    if (!song)
-      setValue("content", samples[contentType][value], { shouldDirty: true });
+    if (!song) setValue("content", samples[contentType][value], { shouldDirty: true });
   };
   const submit = handleSubmit(
     async (values) => {
@@ -141,9 +129,7 @@ export default function EditorScreen() {
       }
       const normalizedKey = normalizeSongKey(result.data.key);
       if (result.data.key && !normalizedKey) {
-        toast.error(
-          "Usa una tonalidad válida, por ejemplo C, F#, Bb, Do o Sol.",
-        );
+        toast.error("Usa una tonalidad válida, por ejemplo C, F#, Bb, Do o Sol.");
         return;
       }
       setSaving(true);
@@ -223,9 +209,7 @@ export default function EditorScreen() {
               if (accessMode === "authenticated" && song.remoteId) {
                 const error = await deleteRemoteSong(song.remoteId);
                 if (error) {
-                  toast.error(
-                    "No fue posible eliminar la canción de Supabase.",
-                  );
+                  toast.error("No fue posible eliminar la canción de Supabase.");
                   return;
                 }
               }
@@ -256,9 +240,7 @@ export default function EditorScreen() {
         <Pressable onPress={() => router.back()}>
           <Text style={styles.cancel}>Cancelar</Text>
         </Pressable>
-        <Text style={styles.navTitle}>
-          {song ? "Editar canción" : "Nueva canción"}
-        </Text>
+        <Text style={styles.navTitle}>{song ? "Editar canción" : "Nueva canción"}</Text>
         <Button
           label={saving ? "Guardando…" : saved ? "Guardada" : "Guardar"}
           compact
@@ -266,13 +248,8 @@ export default function EditorScreen() {
           onPress={submit}
         />
       </View>
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        keyboardShouldPersistTaps="handled"
-      >
-        <Text style={styles.eyebrow}>
-          {isDirty ? "CAMBIOS SIN GUARDAR" : "EDITOR AURELIS"}
-        </Text>
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+        <Text style={styles.eyebrow}>{isDirty ? "CAMBIOS SIN GUARDAR" : "EDITOR AURELIS"}</Text>
         <Field
           control={control}
           name="title"
@@ -293,24 +270,15 @@ export default function EditorScreen() {
             <Pressable
               key={option.value}
               onPress={() => chooseContentType(option.value)}
-              style={[
-                styles.typeCard,
-                contentType === option.value && styles.typeCardActive,
-              ]}
+              style={[styles.typeCard, contentType === option.value && styles.typeCardActive]}
             >
               <Text
-                style={[
-                  styles.typeMark,
-                  contentType === option.value && styles.typeTextActive,
-                ]}
+                style={[styles.typeMark, contentType === option.value && styles.typeTextActive]}
               >
                 {option.mark}
               </Text>
               <Text
-                style={[
-                  styles.typeLabel,
-                  contentType === option.value && styles.typeTextActive,
-                ]}
+                style={[styles.typeLabel, contentType === option.value && styles.typeTextActive]}
               >
                 {option.label}
               </Text>
@@ -326,10 +294,7 @@ export default function EditorScreen() {
                 <Pressable
                   key={option.value}
                   onPress={() => chooseNotation(option.value)}
-                  style={[
-                    styles.notation,
-                    notation === option.value && styles.notationActive,
-                  ]}
+                  style={[styles.notation, notation === option.value && styles.notationActive]}
                 >
                   <Text
                     style={[
@@ -355,9 +320,7 @@ export default function EditorScreen() {
             />
           </View>
         </View>
-        <Text style={styles.label}>
-          ¿PARA QUÉ INSTRUMENTO ESTÁ ESCRITO ESTE MATERIAL?
-        </Text>
+        <Text style={styles.label}>¿PARA QUÉ INSTRUMENTO ESTÁ ESCRITO ESTE MATERIAL?</Text>
         <Controller
           control={control}
           name="sourceInstrumentName"
@@ -369,8 +332,7 @@ export default function EditorScreen() {
                   onPress={() => onChange(option)}
                   style={[
                     styles.instrumentOption,
-                    sourceInstrumentName === option &&
-                      styles.instrumentOptionActive,
+                    sourceInstrumentName === option && styles.instrumentOptionActive,
                   ]}
                 >
                   <Text style={styles.instrumentOptionText}>
@@ -382,8 +344,8 @@ export default function EditorScreen() {
           )}
         />
         <Text style={styles.instrumentHelp}>
-          Si estas notas ya están escritas para trompeta, selecciona Trompeta Bb
-          para evitar doble transporte.
+          Si estas notas ya están escritas para trompeta, selecciona Trompeta Bb para evitar doble
+          transporte.
         </Text>
         {!organizationId && !song?.organizationId ? (
           <>
@@ -395,25 +357,17 @@ export default function EditorScreen() {
                 <View style={styles.visibilityRow}>
                   <Pressable
                     onPress={() => onChange("private")}
-                    style={[
-                      styles.visibility,
-                      value === "private" && styles.visibilityActive,
-                    ]}
+                    style={[styles.visibility, value === "private" && styles.visibilityActive]}
                   >
                     <Text style={styles.visibilityTitle}>Privada</Text>
                     <Text style={styles.visibilityCopy}>Sólo tú</Text>
                   </Pressable>
                   <Pressable
                     onPress={() => onChange("public")}
-                    style={[
-                      styles.visibility,
-                      value === "public" && styles.visibilityActive,
-                    ]}
+                    style={[styles.visibility, value === "public" && styles.visibilityActive]}
                   >
                     <Text style={styles.visibilityTitle}>Pública</Text>
-                    <Text style={styles.visibilityCopy}>
-                      Usuarios con cuenta
-                    </Text>
+                    <Text style={styles.visibilityCopy}>Usuarios con cuenta</Text>
                   </Pressable>
                 </View>
               )}
@@ -455,9 +409,7 @@ export default function EditorScreen() {
           )}
         />
         {saveMessage ? (
-          <Text style={[styles.saveMessage, saved && styles.saveSuccess]}>
-            {saveMessage}
-          </Text>
+          <Text style={[styles.saveMessage, saved && styles.saveSuccess]}>{saveMessage}</Text>
         ) : null}
         <Text style={styles.counter}>
           Texto plano compatible · espacios preservados · transporte automático

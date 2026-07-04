@@ -1,7 +1,7 @@
-import { useSetlistStore } from '@/store/setlist-store';
-import { useSongStore } from '@/store/song-store';
+import { useSetlistStore } from "@/store/setlist-store";
+import { useSongStore } from "@/store/song-store";
 
-export type LocalDataScope = 'guest' | `user:${string}`;
+export type LocalDataScope = "guest" | `user:${string}`;
 
 let activeScope: LocalDataScope | null = null;
 

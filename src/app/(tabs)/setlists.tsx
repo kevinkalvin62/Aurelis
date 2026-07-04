@@ -59,9 +59,7 @@ export default function SetlistsScreen() {
               pathname: "/setlist/[id]",
               params: {
                 id: setlist.id,
-                ...(setlist.organizationId
-                  ? { organizationId: setlist.organizationId }
-                  : {}),
+                ...(setlist.organizationId ? { organizationId: setlist.organizationId } : {}),
               },
             })
           }
@@ -69,21 +67,14 @@ export default function SetlistsScreen() {
         >
           <View style={styles.date}>
             <Text style={styles.dateDay}>
-              {setlist.serviceDate
-                ? "FECHA"
-                : setlist.organizationId
-                  ? "GRUPO"
-                  : "LOCAL"}
+              {setlist.serviceDate ? "FECHA" : setlist.organizationId ? "GRUPO" : "LOCAL"}
             </Text>
-            <Text style={styles.dateNumber}>
-              {setlist.serviceDate?.slice(-2) ?? "—"}
-            </Text>
+            <Text style={styles.dateNumber}>{setlist.serviceDate?.slice(-2) ?? "—"}</Text>
           </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.title}>{setlist.title}</Text>
             <Text style={styles.meta}>
-              {formatFriendlyDate(setlist.serviceDate)} ·{" "}
-              {setlist.organizationName ?? "Personal"} ·{" "}
+              {formatFriendlyDate(setlist.serviceDate)} · {setlist.organizationName ?? "Personal"} ·{" "}
               {setlist.items?.length ?? setlist.songIds.length} canciones
             </Text>
           </View>

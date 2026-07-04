@@ -60,13 +60,8 @@ export function getInstrumentTransposeOffset(instrumentName?: string): number {
   return 0;
 }
 
-export function getTransposeDeltaBetweenInstruments(
-  source?: string,
-  target?: string,
-): number {
-  return (
-    getInstrumentTransposeOffset(target) - getInstrumentTransposeOffset(source)
-  );
+export function getTransposeDeltaBetweenInstruments(source?: string, target?: string): number {
+  return getInstrumentTransposeOffset(target) - getInstrumentTransposeOffset(source);
 }
 
 export function shouldTranspose(source?: string, target?: string): boolean {

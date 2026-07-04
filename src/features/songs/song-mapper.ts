@@ -1,9 +1,4 @@
-import type {
-  MusicNotation,
-  Song,
-  SongContentType,
-  Visibility,
-} from "@/types/domain";
+import type { MusicNotation, Song, SongContentType, Visibility } from "@/types/domain";
 import type { Json } from "@/types/database.generated";
 
 export interface RemoteSongRow {
@@ -30,11 +25,7 @@ export interface SongStructuredContent {
   lines: Record<string, string>[];
 }
 
-const CONTENT_TYPES: SongContentType[] = [
-  "lyrics_chords",
-  "chords_only",
-  "wind_notes",
-];
+const CONTENT_TYPES: SongContentType[] = ["lyrics_chords", "chords_only", "wind_notes"];
 const NOTATIONS: MusicNotation[] = ["american", "latin"];
 const ALLOWED_KEYS = new Set([
   "C",
@@ -97,10 +88,7 @@ export function buildSongContentStructured(input: {
       schema_version: 1,
       type: input.contentType,
       notation: input.notation,
-      bpm:
-        Number.isFinite(input.bpm) && Number(input.bpm) > 0
-          ? Number(input.bpm)
-          : null,
+      bpm: Number.isFinite(input.bpm) && Number(input.bpm) > 0 ? Number(input.bpm) : null,
       lines: structuredLines(input.contentRaw, input.contentType),
     },
   ];
@@ -126,8 +114,7 @@ function structuredLines(
 
 export function songPayload(song: Song, userId: string) {
   const originalKey = normalizeSongKey(song.key);
-  const currentKey =
-    normalizeSongKey(song.currentKey ?? song.key) ?? originalKey;
+  const currentKey = normalizeSongKey(song.currentKey ?? song.key) ?? originalKey;
   return {
     user_id: userId,
     organization_id: song.organizationId ?? null,
@@ -142,9 +129,7 @@ export function songPayload(song: Song, userId: string) {
       notation: song.notation,
       bpm: song.bpm,
     }),
-    visibility: song.organizationId
-      ? ("organization" as const)
-      : song.visibility,
+    visibility: song.organizationId ? ("organization" as const) : song.visibility,
     updated_at: new Date().toISOString(),
   };
 }
@@ -152,9 +137,7 @@ export function songPayload(song: Song, userId: string) {
 export function normalizeSongKey(value?: string): string | null {
   const input = value?.trim().replace(/[♯]/g, "#").replace(/[♭]/g, "b");
   if (!input) return null;
-  const cleaned = input
-    .replace(/\s+(major|mayor)$/i, "")
-    .replace(/\s+(minor|menor)$/i, "m");
+  const cleaned = input.replace(/\s+(major|mayor)$/i, "").replace(/\s+(minor|menor)$/i, "m");
   const latin = cleaned.match(/^(DO|RE|MI|FA|SOL|LA|SI)([#b]?)(m)?$/i);
   if (latin) {
     const root = LATIN_ROOTS[latin[1]!.toUpperCase()];
@@ -188,9 +171,7 @@ export function mapRemoteSong(row: RemoteSongRow): Song {
     id: `remote-${row.id}`,
     remoteId: String(row.id),
     ownerUserId: String(row.user_id),
-    ...(row.organization_id
-      ? { organizationId: String(row.organization_id) }
-      : {}),
+    ...(row.organization_id ? { organizationId: String(row.organization_id) } : {}),
     title: String(row.title),
     artist: row.artist ? String(row.artist) : "",
     key: row.original_key ? String(row.original_key) : "C",

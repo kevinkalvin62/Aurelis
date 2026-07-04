@@ -11,10 +11,7 @@ import {
   listMyInstruments,
   listMyOrganizations,
 } from "@/features/organizations/organization-service";
-import {
-  listPersonalInstruments,
-  savePersonalInstruments,
-} from "@/features/auth/profile-service";
+import { listPersonalInstruments, savePersonalInstruments } from "@/features/auth/profile-service";
 
 export default function ProfileScreen() {
   const queryClient = useQueryClient();
@@ -43,8 +40,7 @@ export default function ProfileScreen() {
     queryFn: listInstruments,
     enabled: authenticated,
   });
-  const displayName =
-    accessMode === "guest" ? "Invitado" : user?.name || "Músico";
+  const displayName = accessMode === "guest" ? "Invitado" : user?.name || "Músico";
 
   const createOrganization = () => {
     if (!authenticated) {
@@ -61,19 +57,12 @@ export default function ProfileScreen() {
     }
     setSelectedIds(
       personalInstruments.flatMap((item) => {
-        const match = catalog.find(
-          (instrument) => instrument.name === item.instrumentName,
-        );
+        const match = catalog.find((instrument) => instrument.name === item.instrumentName);
         return match ? [match.id] : [];
       }),
     );
-    const primary =
-      personalInstruments.find((item) => item.isPrimary) ??
-      personalInstruments[0];
-    setPrimaryId(
-      catalog.find((instrument) => instrument.name === primary?.instrumentName)
-        ?.id,
-    );
+    const primary = personalInstruments.find((item) => item.isPrimary) ?? personalInstruments[0];
+    setPrimaryId(catalog.find((instrument) => instrument.name === primary?.instrumentName)?.id);
     setEditing(true);
   };
   const toggle = (id: string) => {
@@ -106,9 +95,7 @@ export default function ProfileScreen() {
       <View style={styles.identity}>
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>
-            {accessMode === "guest"
-              ? "IN"
-              : displayName.slice(0, 2).toUpperCase()}
+            {accessMode === "guest" ? "IN" : displayName.slice(0, 2).toUpperCase()}
           </Text>
         </View>
         <View>
@@ -117,9 +104,7 @@ export default function ProfileScreen() {
             {authenticated ? user?.email : "Modo invitado · datos locales"}
           </Text>
           <View style={styles.plan}>
-            <Text style={styles.planText}>
-              {authenticated ? "SINCRONIZADO" : "INVITADO"}
-            </Text>
+            <Text style={styles.planText}>{authenticated ? "SINCRONIZADO" : "INVITADO"}</Text>
           </View>
         </View>
       </View>
@@ -132,9 +117,7 @@ export default function ProfileScreen() {
           </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.rowTitle}>Función disponible con cuenta</Text>
-            <Text style={styles.rowCopy}>
-              Inicia sesión para crear o unirte a una organización
-            </Text>
+            <Text style={styles.rowCopy}>Inicia sesión para crear o unirte a una organización</Text>
           </View>
         </Pressable>
       ) : (
@@ -158,13 +141,9 @@ export default function ProfileScreen() {
               </View>
             </Pressable>
           ))}
-          {isLoading ? (
-            <Text style={styles.emptyCopy}>Cargando organizaciones…</Text>
-          ) : null}
+          {isLoading ? <Text style={styles.emptyCopy}>Cargando organizaciones…</Text> : null}
           {!isLoading && !organizations.length ? (
-            <Text style={styles.emptyCopy}>
-              Aún no perteneces a ninguna organización.
-            </Text>
+            <Text style={styles.emptyCopy}>Aún no perteneces a ninguna organización.</Text>
           ) : null}
           <Pressable onPress={createOrganization} style={styles.row}>
             <Text style={styles.addMark}>＋</Text>
@@ -179,21 +158,15 @@ export default function ProfileScreen() {
           <View key={instrument.id} style={styles.row}>
             <View style={{ flex: 1 }}>
               <Text style={styles.rowTitle}>{instrument.instrumentName}</Text>
-              <Text style={styles.rowCopy}>
-                Biblioteca y programas personales
-              </Text>
+              <Text style={styles.rowCopy}>Biblioteca y programas personales</Text>
             </View>
-            {instrument.isPrimary ? (
-              <Text style={styles.primary}>PRINCIPAL</Text>
-            ) : null}
+            {instrument.isPrimary ? <Text style={styles.primary}>PRINCIPAL</Text> : null}
           </View>
         ))}
         <Pressable onPress={openEditor} style={styles.row}>
           <Text style={styles.addMark}>＋</Text>
           <Text style={styles.rowTitle}>
-            {personalInstruments.length
-              ? "Editar instrumentos"
-              : "Agregar instrumentos"}
+            {personalInstruments.length ? "Editar instrumentos" : "Agregar instrumentos"}
           </Text>
         </Pressable>
       </View>
@@ -203,10 +176,7 @@ export default function ProfileScreen() {
             const selected = selectedIds.includes(instrument.id);
             return (
               <View key={instrument.id} style={styles.choice}>
-                <Pressable
-                  onPress={() => toggle(instrument.id)}
-                  style={{ flex: 1 }}
-                >
+                <Pressable onPress={() => toggle(instrument.id)} style={{ flex: 1 }}>
                   <Text style={styles.rowTitle}>
                     {selected ? "✓ " : ""}
                     {instrument.name}
@@ -215,9 +185,7 @@ export default function ProfileScreen() {
                 {selected ? (
                   <Pressable onPress={() => setPrimaryId(instrument.id)}>
                     <Text style={styles.primary}>
-                      {primaryId === instrument.id
-                        ? "★ PRINCIPAL"
-                        : "HACER PRINCIPAL"}
+                      {primaryId === instrument.id ? "★ PRINCIPAL" : "HACER PRINCIPAL"}
                     </Text>
                   </Pressable>
                 ) : null}
@@ -237,12 +205,8 @@ export default function ProfileScreen() {
             {organizationInstruments.map((instrument) => (
               <View key={instrument.id} style={styles.row}>
                 <View>
-                  <Text style={styles.rowTitle}>
-                    {instrument.instrumentName}
-                  </Text>
-                  <Text style={styles.rowCopy}>
-                    {instrument.organizationName}
-                  </Text>
+                  <Text style={styles.rowTitle}>{instrument.instrumentName}</Text>
+                  <Text style={styles.rowCopy}>{instrument.organizationName}</Text>
                 </View>
               </View>
             ))}

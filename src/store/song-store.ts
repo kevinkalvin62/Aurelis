@@ -3,10 +3,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { appStorage } from "@/lib/storage";
 import type { Song } from "@/types/domain";
 
-export type SongDraft = Omit<
-  Song,
-  "id" | "updatedAt" | "remoteId" | "syncStatus"
->;
+export type SongDraft = Omit<Song, "id" | "updatedAt" | "remoteId" | "syncStatus">;
 
 interface SongState {
   songs: Song[];
@@ -39,9 +36,7 @@ export const useSongStore = create<SongState>()(
         };
         set((state) => ({
           songs: previous
-            ? state.songs.map((song) =>
-                song.id === previous.id ? saved : song,
-              )
+            ? state.songs.map((song) => (song.id === previous.id ? saved : song))
             : [saved, ...state.songs],
         }));
         return saved;
@@ -64,9 +59,7 @@ export const useSongStore = create<SongState>()(
           return {
             songs: [
               ...remoteSongs,
-              ...state.songs.filter(
-                (song) => !song.remoteId || !remoteIds.has(song.remoteId),
-              ),
+              ...state.songs.filter((song) => !song.remoteId || !remoteIds.has(song.remoteId)),
             ],
           };
         }),

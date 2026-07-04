@@ -51,9 +51,7 @@ describe("Supabase song mapping", () => {
         original_key: "D",
         current_key: "E",
         content_raw: "DEFEDA",
-        content_structured: [
-          { version: 1, type: "wind_notes", notation: "american", bpm: 96 },
-        ],
+        content_structured: [{ version: 1, type: "wind_notes", notation: "american", bpm: 96 }],
         song_versions: [
           { version: 1, source_instrument_name: "Concert" },
           { version: 2, source_instrument_name: "Trompeta Bb" },

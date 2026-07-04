@@ -25,10 +25,8 @@ describe("selectNextSetlist", () => {
 
   it("falls back to an undated program", () => {
     expect(
-      selectNextSetlist(
-        [setlist("past", "2026-06-01"), setlist("undated")],
-        new Date(2026, 6, 1),
-      )?.id,
+      selectNextSetlist([setlist("past", "2026-06-01"), setlist("undated")], new Date(2026, 6, 1))
+        ?.id,
     ).toBe("undated");
   });
 });
