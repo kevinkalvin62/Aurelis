@@ -61,7 +61,7 @@
     "backend:stop": "supabase stop",
     "backend:reset": "supabase db reset",
     "backend:status": "supabase status",
-    "backend:types": "supabase gen types typescript --local --schema public > src/types/database.generated.ts",
+    "backend:types": "node ./scripts/generate-supabase-types.mjs",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

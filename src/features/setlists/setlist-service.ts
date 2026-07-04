@@ -14,6 +14,8 @@ export async function createRemoteSetlist(input: {
 }): Promise<{ id?: string; error?: string }> {
   if (input.serviceDate && !isISODate(input.serviceDate))
     return { error: "La fecha no es válida." };
+  if (!input.serviceDate)
+    return { error: "Selecciona una fecha para el programa." };
   const { data: userData, error: userError } = await supabase.auth.getUser();
   if (userError || !userData.user)
     return { error: "Tu sesión expiró. Inicia sesión nuevamente." };
@@ -23,8 +25,8 @@ export async function createRemoteSetlist(input: {
     .insert({
       organization_id: input.organizationId,
       title: input.title,
-      service_date: input.serviceDate || null,
-      source_text: sourceText,
+      service_date: input.serviceDate,
+      source_text: sourceText ?? "",
       created_by: userData.user.id,
     })
     .select("id")

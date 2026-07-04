@@ -4,6 +4,7 @@ import type {
   SongContentType,
   Visibility,
 } from "@/types/domain";
+import type { Json } from "@/types/database.generated";
 
 export interface RemoteSongRow {
   id: string;
@@ -21,6 +22,7 @@ export interface RemoteSongRow {
 }
 
 export interface SongStructuredContent {
+  [key: string]: Json | undefined;
   schema_version: number;
   type: SongContentType;
   notation: MusicNotation;

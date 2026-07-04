@@ -14,15 +14,23 @@ export async function syncSong(
   userId: string,
 ): Promise<{ remoteId?: string; error?: string }> {
   const payload = songPayload(song, userId);
+  if (!payload.original_key || !payload.current_key) {
+    return { error: "Selecciona una tonalidad válida antes de sincronizar." };
+  }
+  const databasePayload = {
+    ...payload,
+    original_key: payload.original_key,
+    current_key: payload.current_key,
+  };
   const isNewSong = !song.remoteId;
   const query = song.remoteId
     ? supabase
         .from("songs")
-        .update(payload)
+        .update(databasePayload)
         .eq("id", song.remoteId)
         .select("id")
         .single()
-    : supabase.from("songs").insert(payload).select("id").single();
+    : supabase.from("songs").insert(databasePayload).select("id").single();
   const { data, error } = await query;
   if (error) return { error: error.message };
   if (!data?.id)
@@ -43,7 +51,7 @@ export async function syncSong(
       `No fue posible calcular la versión: ${versionLookupError.message}`,
     );
   const nextVersion = Number(latestVersion?.version ?? 0) + 1;
-  const normalizedKey = payload.current_key;
+  const normalizedKey = databasePayload.current_key;
   const { error: versionError } = await supabase.from("song_versions").insert({
     song_id: remoteId,
     version: nextVersion,
