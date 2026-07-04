@@ -1,13 +1,44 @@
-# Supabase
+# Backend Supabase de Aurelis
 
-The production project already owns the Aurelis schema. Do not recreate it.
+Este directorio contiene el contrato reproducible del backend. El esquema base fue
+extraído del proyecto remoto el 3 de julio de 2026 y no contiene datos de usuarios.
 
-Apply only the incremental migrations that are missing in the remote project:
+## Requisitos
 
-- `202606290002_app_workflows.sql` adds secure member-management helpers.
-- `202606290003_setlist_free_text_items.sql` lets program items keep a title without requiring a library song.
-- `202606290004_organization_types.sql` safely expands organization types for bands, schools, choirs, groups and personal projects.
-- `202606300001_song_source_instruments_and_keys.sql` adds source-instrument metadata, minor-key checks and personal instruments without recreating existing tables.
-- `202606300002_setlist_item_keys.sql` safely allows normalized major and minor keys in program items.
+- Node.js 22 o superior.
+- Docker Desktop activo.
+- Dependencias instaladas con `npm ci`.
 
-Neither migration recreates tables. Never restore or run the removed initial migration.
+## Flujo local
+
+```bash
+npm run backend:start
+npm run backend:reset
+npm run backend:types
+npm run backend:status
+```
+
+`backend:reset` elimina únicamente la base local, aplica las nueve migraciones en
+orden y ejecuta `seed.sql`. El seed está vacío intencionalmente: la reproducción
+del esquema no depende de contenido propiedad de músicos.
+
+## Estructura
+
+- `config.toml`: stack local compatible con PostgreSQL 17.
+- `migrations/20260628000000_remote_schema.sql`: snapshot DDL del esquema público
+  remoto, sin filas ni secretos.
+- `migrations/20260629*` y `20260630*`: cambios incrementales existentes.
+- `seed.sql`: punto de entrada explícito para datos de desarrollo futuros.
+- `src/types/database.generated.ts`: tipos producidos desde el estado local final.
+
+## Producción
+
+El proyecto vinculado es `utfezzpwltvwaifxakeg`. Su tabla de historial remoto
+estaba vacía al iniciar Sprint 1, aunque el esquema ya contenía manualmente buena
+parte de las migraciones. Por eso **no se debe ejecutar `supabase db push`,
+`migration repair` ni `db reset --linked`** hasta aprobar el ADR de reconciliación
+en `docs/engineering/adr/0001-supabase-production-migration-baseline.md`.
+
+Las claves `EXPO_PUBLIC_*` son configuración pública del cliente. Nunca deben
+usarse en la app `service_role`, contraseñas de Postgres, tokens personales ni
+claves `sb_secret_*`.

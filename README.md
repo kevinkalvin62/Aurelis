@@ -5,12 +5,24 @@ Plataforma móvil colaborativa para organizar, compartir y ejecutar repertorio m
 ## Ejecutar
 
 ```bash
-copy .env.example .env
-npm install
+npm ci
+copy .env.example .env.local
 npm run start
 ```
 
 SDK 56 está orientado a development builds. Para validar rápidamente en web usa `npm run web`.
+
+Para trabajar contra un backend local reproducible:
+
+```bash
+npm run backend:start
+npm run backend:reset
+npm run backend:types
+```
+
+Completa `.env.local` con la URL y publishable key mostradas por
+`npm run backend:status`. Consulta `docs/engineering/environment.md` antes de
+configurar cualquier entorno compartido.
 
 ## Calidad
 
@@ -26,9 +38,10 @@ npm test
 - `src/components`: sistema visual compartido.
 - `src/lib`: clientes de infraestructura.
 - `src/store`: estado efímero de ejecución musical.
-- `supabase/migrations`: esquema PostgreSQL y políticas RLS.
+- `src/types/database.generated.ts`: contrato generado de PostgreSQL.
+- `supabase/migrations`: esquema PostgreSQL reproducible y políticas RLS.
 
-La app comienza sin datos simulados. Los invitados trabajan únicamente con almacenamiento local; los usuarios autenticados consultan y sincronizan con Supabase. Antes de usar las funciones de iglesia se debe aplicar la migración y generar tipos con Supabase CLI.
+La app comienza sin datos simulados. Los invitados trabajan únicamente con almacenamiento local; los usuarios autenticados consultan y sincronizan con Supabase. El backend local se recrea mediante `npm run backend:reset`; producción no debe recibir migraciones hasta aprobar el ADR de baseline remoto.
 
 ## Datos y acceso
 
