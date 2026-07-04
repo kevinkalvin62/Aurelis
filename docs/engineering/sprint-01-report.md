@@ -43,6 +43,8 @@ no se modificó Foundation.
 - `backend:types`: salida SHA-256 estable en regeneraciones consecutivas.
 - `npm run typecheck`: aprobado.
 - `npm test`: 11 archivos, 53 pruebas aprobadas.
+- `expo-doctor`: 21/21 checks aprobados después de alinear seis parches SDK 56.
+- `expo export --platform web`: 51 archivos generados correctamente.
 - `expo config --type public`: SDK 56 reconocido y configuración válida.
 - `eas.json`: JSON válido; preview y production tienen variables públicas.
 - Escaneo del repositorio: sin `sb_secret_*`, contraseñas DB ni service-role key.
@@ -65,7 +67,10 @@ forward-only, dry-run y smoke tests de RLS/RPC.
 - `docs: establish foundation governance`
 - `chore: make supabase schema reproducible`
 - `refactor: enforce generated supabase contracts`
-- documentación/entornos: commit final de Sprint 1
+- `chore: define deterministic app environments`
+- `docs: document sprint one engineering baseline`
+- `fix: run supabase generator without a shell`
+- `chore: align expo sdk 56 patch versions`
 
 ## Fuera de alcance
 
