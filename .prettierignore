@@ -1,0 +1,17 @@
+.expo
+.claude
+.vscode
+AGENTS.md
+assets/archive
+assets/expo.icon
+CLAUDE.md
+coverage
+dist
+docs/audit
+docs/branding
+docs/foundation
+docs/product
+docs/product-design
+node_modules
+src/types/database.generated.ts
+supabase/migrations/20260628000000_remote_schema.sql
