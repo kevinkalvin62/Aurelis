@@ -13,6 +13,7 @@ import { useSongStore } from "@/store/song-store";
 import { useAuthStore } from "@/store/auth-store";
 import { listMyOrganizationSetlists } from "@/features/organizations/organization-service";
 import { selectNextSetlist } from "@/features/setlists/next-setlist";
+import { firstDisplayName, homeProgramCta } from "@/features/setlists/home-presentation";
 
 export default function HomeScreen() {
   const allSongs = useSongStore((state) => state.songs);
@@ -25,8 +26,9 @@ export default function HomeScreen() {
     enabled: accessMode === "authenticated",
   });
   const next = selectNextSetlist([...setlists, ...organizationSetlists]);
-  const displayName = accessMode === "guest" ? "Invitado" : user?.name || "Músico";
-  const initials = accessMode === "guest" ? "IN" : displayName.slice(0, 2).toUpperCase();
+  const fullDisplayName = accessMode === "guest" ? "Invitado" : user?.name || "Músico";
+  const displayName = firstDisplayName(fullDisplayName);
+  const initials = accessMode === "guest" ? "IN" : fullDisplayName.slice(0, 2).toUpperCase();
   const dateLabel = new Intl.DateTimeFormat("es-MX", {
     weekday: "long",
     day: "numeric",
@@ -72,7 +74,7 @@ export default function HomeScreen() {
                 <Text style={styles.heroCaption}>MÚSICOS</Text>
               </View>
               <Button
-                label="Abrir setlist  ›"
+                label={homeProgramCta(next.serviceDate)}
                 compact
                 style={{ marginLeft: "auto" }}
                 onPress={() =>
@@ -91,9 +93,10 @@ export default function HomeScreen() {
       ) : (
         <Pressable onPress={() => router.push("/setlists")} style={styles.emptyHero}>
           <Text style={styles.heroEyebrow}>TU PRÓXIMO PROGRAMA</Text>
-          <Text style={styles.emptyHeroTitle}>Aún no tienes programas</Text>
+          <Text style={styles.emptyHeroTitle}>No tienes programas próximos.</Text>
           <Text style={styles.emptyHeroCopy}>
-            Crea una lista local o inicia sesión para trabajar con tu organización.
+            Cuando prepares un ensayo o presentación, aparecerá aquí para que lo tengas siempre a la
+            mano.
           </Text>
         </Pressable>
       )}

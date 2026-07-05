@@ -192,7 +192,9 @@ export default function CreateSetlistScreen() {
               <View style={{ flex: 1 }}>
                 <Text style={styles.songTitle}>{item.titleSnapshot}</Text>
                 <Text style={[styles.linkState, !item.songId && styles.unmatched]}>
-                  {item.songId ? "Vinculada a biblioteca" : "Texto libre · recursos opcionales"}
+                  {item.songId
+                    ? "Disponible en la biblioteca"
+                    : "Texto libre · recursos opcionales"}
                 </Text>
               </View>
               <Pressable onPress={() => move(item.clientId, -1)}>
@@ -226,7 +228,9 @@ export default function CreateSetlistScreen() {
                   <View style={{ flex: 1 }}>
                     <Text style={styles.songTitle}>{item.titleSnapshot}</Text>
                     <Text style={[styles.linkState, !item.songId && styles.unmatched]}>
-                      {item.songId ? "Vinculada a biblioteca" : "Texto libre · recursos opcionales"}
+                      {item.songId
+                        ? "Disponible en la biblioteca"
+                        : "Texto libre · recursos opcionales"}
                     </Text>
                   </View>
                   <Pressable onPress={() => remove(item.clientId)} hitSlop={8}>

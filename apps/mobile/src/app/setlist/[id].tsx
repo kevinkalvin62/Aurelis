@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { SongRow } from "@/components/song-row";
+import { ExperienceState } from "@/components/ui/experience-state";
 import { colors, radii, spacing } from "@/constants/design";
 import {
   listInstrumentMaterials,
@@ -15,6 +16,7 @@ import { getInstrumentTransposeOffset } from "@/features/organizations/instrumen
 import { getTransposeDeltaBetweenInstruments } from "@/features/music-engine/instruments";
 import { listPersonalInstruments } from "@/features/auth/profile-service";
 import { linkRemoteSetlistItem } from "@/features/setlists/setlist-service";
+import { searchSongs } from "@/features/songs/song-search";
 import { useAuthStore } from "@/store/auth-store";
 import { useSetlistStore } from "@/store/setlist-store";
 import { useSongStore } from "@/store/song-store";
@@ -33,6 +35,7 @@ export default function SetlistDetailScreen() {
   const linkLocalItem = useSetlistStore((state) => state.linkItem);
   const localSongs = useSongStore((state) => state.songs);
   const [linkingItem, setLinkingItem] = useState<string | null>(null);
+  const [linkQuery, setLinkQuery] = useState("");
   const [selectedInstrumentId, setSelectedInstrumentId] = useState<"all" | string>("all");
   const { data: remoteSetlists = [] } = useQuery({
     queryKey: ["organization-setlists", organizationId],
@@ -119,7 +122,14 @@ export default function SetlistDetailScreen() {
       });
     } else linkLocalItem(id, item.id, song.id);
     setLinkingItem(null);
-    toast.success("Canción vinculada; sus recursos ya están disponibles.");
+    setLinkQuery("");
+    toast.success("Canción agregada desde tu biblioteca.");
+  };
+
+  const toggleSongSearch = (item: SetlistItem) => {
+    const isClosing = linkingItem === item.id;
+    setLinkingItem(isClosing ? null : item.id);
+    setLinkQuery(isClosing ? "" : item.titleSnapshot);
   };
 
   return (
@@ -238,23 +248,64 @@ export default function SetlistDetailScreen() {
                     <View style={{ flex: 1 }}>
                       <Text style={styles.freeTitle}>{item.titleSnapshot}</Text>
                       <Text style={styles.freeCopy}>
-                        Sin recurso vinculado · permanece en el programa
+                        Sin canción de la biblioteca · permanece en el programa
                       </Text>
                       {item.notes ? <Text style={styles.itemNotes}>{item.notes}</Text> : null}
                     </View>
                     {canManage ? (
                       <Pressable
-                        onPress={() => setLinkingItem(linkingItem === item.id ? null : item.id)}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Buscar ${item.titleSnapshot} en la biblioteca`}
+                        onPress={() => toggleSongSearch(item)}
                       >
-                        <Text style={styles.linkAction}>Vincular</Text>
+                        <Text style={styles.linkAction}>Buscar en biblioteca</Text>
                       </Pressable>
                     ) : null}
                   </View>
                 )}
                 {linkingItem === item.id ? (
                   <View style={styles.linkPicker}>
-                    {songs.length ? (
-                      songs.map((candidate) => (
+                    <View style={styles.search}>
+                      <Text style={styles.searchIcon}>⌕</Text>
+                      <TextInput
+                        autoFocus
+                        autoCorrect={false}
+                        returnKeyType="search"
+                        accessibilityLabel="Buscar canción o artista"
+                        value={linkQuery}
+                        onChangeText={setLinkQuery}
+                        placeholder="Buscar canción o artista"
+                        placeholderTextColor="#77706C"
+                        style={styles.searchInput}
+                      />
+                      {linkQuery ? (
+                        <Pressable
+                          accessibilityRole="button"
+                          accessibilityLabel="Limpiar búsqueda"
+                          hitSlop={10}
+                          onPress={() => setLinkQuery("")}
+                        >
+                          <Text style={styles.searchClear}>×</Text>
+                        </Pressable>
+                      ) : null}
+                    </View>
+                    {!songs.length ? (
+                      <ExperienceState
+                        kind="empty"
+                        title={
+                          organizationId
+                            ? "Aquí crecerá el repertorio de tu agrupación."
+                            : "Aquí comenzará tu repertorio personal."
+                        }
+                        message={
+                          organizationId
+                            ? "Cada canción que agreguen ayudará a que los próximos ensayos comiencen mejor preparados."
+                            : "Guarda canciones, notas y materiales para tenerlos siempre listos cuando los necesites."
+                        }
+                        style={styles.pickerState}
+                      />
+                    ) : linkQuery.trim() ? (
+                      searchSongs(songs, linkQuery).map((candidate) => (
                         <Pressable
                           key={candidate.id}
                           onPress={() => linkItem(item, candidate.id)}
@@ -267,11 +318,20 @@ export default function SetlistDetailScreen() {
                         </Pressable>
                       ))
                     ) : (
-                      <Text style={styles.noResources}>
-                        La biblioteca todavía está vacía. Esta canción seguirá disponible como texto
-                        libre.
-                      </Text>
+                      <ExperienceState
+                        kind="empty"
+                        message="Escribe el nombre de una canción o artista para encontrarla."
+                        style={styles.pickerState}
+                      />
                     )}
+                    {songs.length && linkQuery.trim() && !searchSongs(songs, linkQuery).length ? (
+                      <ExperienceState
+                        kind="empty"
+                        title="No encontramos canciones con ese nombre."
+                        message="Revisa la búsqueda o agrega una nueva canción a tu biblioteca."
+                        style={styles.pickerState}
+                      />
+                    ) : null}
                   </View>
                 ) : null}
               </View>
@@ -279,7 +339,12 @@ export default function SetlistDetailScreen() {
           })}
         </View>
         {!items.length ? (
-          <Text style={styles.empty}>Este programa aún no tiene canciones.</Text>
+          <ExperienceState
+            kind="empty"
+            title="Este programa todavía no tiene canciones."
+            message="Agrega el repertorio que prepararán para el próximo ensayo o presentación."
+            style={styles.empty}
+          />
         ) : null}
       </ScrollView>
     </SafeAreaView>
@@ -421,22 +486,33 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: "900",
     padding: 8,
+    maxWidth: 90,
+    textAlign: "right",
   },
   linkPicker: {
     paddingVertical: 8,
-    paddingLeft: 44,
+    paddingHorizontal: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border,
   },
+  search: {
+    minHeight: 46,
+    backgroundColor: colors.background,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    gap: 8,
+  },
+  searchIcon: { color: colors.textSecondary, fontSize: 20 },
+  searchInput: { flex: 1, color: colors.text, fontSize: 12, outlineStyle: "none" } as never,
+  searchClear: { color: colors.textSecondary, fontSize: 21, lineHeight: 23 },
+  pickerState: { paddingVertical: spacing.md },
   linkOption: { paddingVertical: 9 },
   linkOptionTitle: { color: colors.text, fontSize: 11, fontWeight: "700" },
   linkOptionMeta: { color: colors.textSecondary, fontSize: 9, marginTop: 2 },
-  noResources: {
-    color: colors.textSecondary,
-    fontSize: 10,
-    lineHeight: 15,
-    paddingVertical: 10,
-  },
   material: {
     marginBottom: 12,
     marginLeft: 46,
@@ -466,5 +542,5 @@ const styles = StyleSheet.create({
     marginLeft: 46,
     marginBottom: 10,
   },
-  empty: { color: colors.textSecondary, textAlign: "center", padding: 28 },
+  empty: { padding: 28 },
 });

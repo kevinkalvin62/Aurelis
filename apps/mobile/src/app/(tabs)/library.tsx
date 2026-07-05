@@ -1,9 +1,12 @@
 import { useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { router } from "expo-router";
 import { SongRow } from "@/components/song-row";
+import { Button } from "@/components/ui/button";
+import { ExperienceState } from "@/components/ui/experience-state";
 import { Screen } from "@/components/ui/screen";
 import { colors, radii, spacing } from "@/constants/design";
+import { searchSongs } from "@/features/songs/song-search";
 import { useSongStore } from "@/store/song-store";
 import { useAuthStore } from "@/store/auth-store";
 
@@ -17,16 +20,13 @@ export default function LibraryScreen() {
   const personalSongs = useMemo(() => songs.filter((song) => !song.organizationId), [songs]);
   const visibleSongs = useMemo(
     () =>
-      personalSongs.filter((song) => {
-        const matchesQuery = `${song.title} ${song.artist}`
-          .toLowerCase()
-          .includes(query.toLowerCase());
+      searchSongs(personalSongs, query).filter((song) => {
         const matchesFilter =
           filter === "Todas" ||
           (filter === "Favoritas" && song.favorite) ||
           (filter === "Públicas" && song.visibility === "public") ||
           (filter === "Privadas" && song.visibility === "private");
-        return matchesQuery && matchesFilter;
+        return matchesFilter;
       }),
     [filter, personalSongs, query],
   );
@@ -36,8 +36,14 @@ export default function LibraryScreen() {
       eyebrow="BIBLIOTECA PERSONAL"
       title="Biblioteca"
       subtitle={`${personalSongs.length} canciones · ${accessMode === "authenticated" ? "sincronización activa" : "guardadas localmente"}`}
+      scroll={false}
       right={
-        <Pressable onPress={() => router.push("/editor")} style={styles.add}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Agregar canción"
+          onPress={() => router.push("/editor")}
+          style={styles.add}
+        >
           <Text style={styles.addText}>＋</Text>
         </Pressable>
       }
@@ -50,7 +56,20 @@ export default function LibraryScreen() {
           placeholder="Buscar canción o artista"
           placeholderTextColor="#77706C"
           style={styles.input}
+          autoCorrect={false}
+          returnKeyType="search"
+          accessibilityLabel="Buscar canción o artista"
         />
+        {query ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Limpiar búsqueda"
+            hitSlop={10}
+            onPress={() => setQuery("")}
+          >
+            <Text style={styles.clear}>×</Text>
+          </Pressable>
+        ) : null}
       </View>
       <View style={styles.filters}>
         {filters.map((item) => (
@@ -69,14 +88,43 @@ export default function LibraryScreen() {
         <Text style={styles.count}>{visibleSongs.length} CANCIONES</Text>
         <Text style={styles.sort}>Actualizadas recientemente ↕</Text>
       </View>
-      <View style={styles.list}>
-        {visibleSongs.map((song, index) => (
-          <SongRow key={song.id} song={song} index={index + 1} />
-        ))}
-        {visibleSongs.length === 0 ? (
-          <Text style={styles.empty}>No encontramos canciones con ese criterio.</Text>
-        ) : null}
-      </View>
+      <FlatList
+        data={visibleSongs}
+        keyExtractor={(song) => song.id}
+        renderItem={({ item, index }) => <SongRow song={item} index={index + 1} />}
+        style={styles.list}
+        contentContainerStyle={visibleSongs.length ? styles.listContent : styles.emptyContent}
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          <ExperienceState
+            kind="empty"
+            title={
+              query
+                ? "No encontramos canciones con ese nombre."
+                : personalSongs.length
+                  ? "No encontramos canciones con ese criterio."
+                  : "Aquí comenzará tu repertorio personal."
+            }
+            message={
+              query
+                ? "Revisa la búsqueda o agrega una nueva canción a tu biblioteca."
+                : personalSongs.length
+                  ? "Prueba con otro filtro para volver a ver tu repertorio."
+                  : "Guarda canciones, notas y materiales para tenerlos siempre listos cuando los necesites."
+            }
+            action={
+              query || !personalSongs.length ? (
+                <Button
+                  label={query ? "Agregar canción" : "Agregar primera canción"}
+                  onPress={() => router.push("/editor")}
+                />
+              ) : undefined
+            }
+          />
+        }
+      />
     </Screen>
   );
 }
@@ -104,6 +152,7 @@ const styles = StyleSheet.create({
   },
   searchIcon: { color: colors.textSecondary, fontSize: 22 },
   input: { flex: 1, color: colors.text, fontSize: 14, outlineStyle: "none" } as never,
+  clear: { color: colors.textSecondary, fontSize: 22, lineHeight: 24 },
   filters: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginVertical: spacing.md },
   filter: {
     paddingHorizontal: 13,
@@ -124,11 +173,12 @@ const styles = StyleSheet.create({
   count: { color: colors.textSecondary, fontSize: 9, fontWeight: "800", letterSpacing: 1.4 },
   sort: { color: colors.textSecondary, fontSize: 10 },
   list: {
+    flex: 1,
     backgroundColor: colors.surface,
     borderRadius: radii.md,
-    paddingHorizontal: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
   },
-  empty: { color: colors.textSecondary, textAlign: "center", padding: 32, fontSize: 13 },
+  listContent: { paddingHorizontal: spacing.md, paddingBottom: 116 },
+  emptyContent: { flexGrow: 1, justifyContent: "center", padding: spacing.xl },
 });
