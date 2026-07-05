@@ -10,8 +10,8 @@ const fs = require("fs");
 const path = require("path");
 const readline = require("readline");
 
-const root = process.cwd();
-const oldDirs = ["src", "scripts"];
+const root = path.resolve(process.cwd(), "apps", "mobile");
+const oldDirs = ["src"];
 const exampleDir = "example";
 const newAppDir = "src/app";
 const exampleDirPath = path.join(root, exampleDir);

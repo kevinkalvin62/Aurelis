@@ -8,9 +8,16 @@ module.exports = defineConfig([
     "coverage/**",
     "dist/**",
     "node_modules/**",
-    "src/types/database.generated.ts",
+    "apps/mobile/src/types/database.generated.ts",
   ]),
   expoConfig,
+  {
+    settings: {
+      "import/resolver": {
+        typescript: { project: "apps/mobile/tsconfig.json" },
+      },
+    },
+  },
   {
     files: ["scripts/**/*.{js,mjs}"],
     languageOptions: {

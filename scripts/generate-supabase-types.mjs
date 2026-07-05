@@ -8,7 +8,7 @@ const executable =
     : resolve("node_modules", ".bin", "supabase");
 const result = spawnSync(
   executable,
-  ["gen", "types", "typescript", "--local", "--schema", "public"],
+  ["--workdir", "infra/supabase", "gen", "types", "typescript", "--local", "--schema", "public"],
   { encoding: "utf8" },
 );
 
@@ -16,7 +16,7 @@ if (result.stderr) process.stderr.write(result.stderr);
 if (result.status !== 0) process.exit(result.status ?? 1);
 
 writeFileSync(
-  resolve("src", "types", "database.generated.ts"),
+  resolve("apps", "mobile", "src", "types", "database.generated.ts"),
   `${result.stdout.trimEnd()}\n`,
   "utf8",
 );

@@ -1,8 +1,8 @@
 import { readFileSync } from "node:fs";
 
 const readJson = (path) => JSON.parse(readFileSync(path, "utf8"));
-const app = readJson("app.json").expo;
-const eas = readJson("eas.json");
+const app = readJson("apps/mobile/app.json").expo;
+const eas = readJson("apps/mobile/eas.json");
 const failures = [];
 
 if (!app?.android?.package) failures.push("app.json requires expo.android.package");
