@@ -16,6 +16,7 @@ export function SongRow({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={`Abrir ${song.title}`}
+      accessibilityHint={`${song.artist || "Sin autor"}, tonalidad ${song.key}`}
       onPress={() =>
         router.push({
           pathname: "/song/[id]",

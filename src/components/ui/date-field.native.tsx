@@ -24,6 +24,7 @@ export function DateField({ value, onChange }: DateFieldProps) {
         style={styles.field}
         accessibilityRole="button"
         accessibilityLabel="Seleccionar fecha"
+        accessibilityValue={{ text: value ? formatFriendlyDate(value) : "Sin fecha" }}
       >
         <Text style={[styles.value, !value && styles.placeholder]}>
           {value ? formatFriendlyDate(value) : "Seleccionar fecha"}
@@ -39,14 +40,24 @@ export function DateField({ value, onChange }: DateFieldProps) {
             onChange={selectDate}
           />
           {process.env.EXPO_OS === "ios" ? (
-            <Pressable onPress={() => setOpen(false)} style={styles.done}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Confirmar fecha"
+              onPress={() => setOpen(false)}
+              style={styles.done}
+            >
               <Text style={styles.doneText}>Listo</Text>
             </Pressable>
           ) : null}
         </View>
       ) : null}
       {value ? (
-        <Pressable onPress={() => onChange("")} style={styles.clear}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Quitar fecha"
+          onPress={() => onChange("")}
+          style={styles.clear}
+        >
           <Text style={styles.clearText}>Quitar fecha</Text>
         </Pressable>
       ) : null}

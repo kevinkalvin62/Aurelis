@@ -27,7 +27,13 @@ export function ToastHost() {
   if (!current) return null;
   return (
     <View pointerEvents="box-none" style={styles.layer}>
-      <Pressable accessibilityRole="alert" onPress={dismiss} style={styles.toast}>
+      <Pressable
+        accessibilityRole="alert"
+        accessibilityLabel={`${labels[current.kind]}. ${current.message}. Toca para cerrar.`}
+        accessibilityLiveRegion="polite"
+        onPress={dismiss}
+        style={styles.toast}
+      >
         <View style={[styles.accent, { backgroundColor: accents[current.kind] }]} />
         <View style={styles.copy}>
           <Text style={[styles.label, { color: accents[current.kind] }]}>
@@ -35,7 +41,9 @@ export function ToastHost() {
           </Text>
           <Text style={styles.message}>{current.message}</Text>
         </View>
-        <Text style={styles.close}>×</Text>
+        <Text accessibilityElementsHidden style={styles.close}>
+          ×
+        </Text>
       </Pressable>
     </View>
   );
