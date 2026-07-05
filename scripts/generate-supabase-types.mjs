@@ -8,7 +8,7 @@ const executable =
     : resolve("node_modules", ".bin", "supabase");
 const result = spawnSync(
   executable,
-  ["--workdir", "infra/supabase", "gen", "types", "typescript", "--local", "--schema", "public"],
+  ["--workdir", "infra", "gen", "types", "typescript", "--local", "--schema", "public"],
   { encoding: "utf8" },
 );
 

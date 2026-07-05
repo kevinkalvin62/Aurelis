@@ -4,10 +4,10 @@ const globals = require("globals");
 
 module.exports = defineConfig([
   globalIgnores([
-    ".expo/**",
-    "coverage/**",
-    "dist/**",
-    "node_modules/**",
+    "**/.expo/**",
+    "**/coverage/**",
+    "**/dist/**",
+    "**/node_modules/**",
     "apps/mobile/src/types/database.generated.ts",
   ]),
   expoConfig,

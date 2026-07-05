@@ -6,7 +6,7 @@ Plataforma móvil colaborativa para organizar, compartir y ejecutar repertorio m
 
 ```bash
 npm ci
-copy .env.example .env.local
+copy apps\mobile\.env.example apps\mobile\.env.local
 npm run start
 ```
 
@@ -20,7 +20,7 @@ npm run backend:reset
 npm run backend:types
 ```
 
-Completa `.env.local` con la URL y publishable key mostradas por
+Completa `apps/mobile/.env.local` con la URL y publishable key mostradas por
 `npm run backend:status`. Consulta `docs/engineering/environment.md` antes de
 configurar cualquier entorno compartido.
 
@@ -33,13 +33,13 @@ npm test
 
 ## Arquitectura
 
-- `src/app`: navegación y composición de pantallas.
-- `src/features/music-engine`: transposición y parser puros, sin dependencias de React.
-- `src/components`: sistema visual compartido.
-- `src/lib`: clientes de infraestructura.
-- `src/store`: estado efímero de ejecución musical.
-- `src/types/database.generated.ts`: contrato generado de PostgreSQL.
-- `supabase/migrations`: esquema PostgreSQL reproducible y políticas RLS.
+- `apps/mobile/src/app`: navegación y composición de pantallas.
+- `apps/mobile/src/features/music-engine`: transposición y parser puros, sin dependencias de React.
+- `apps/mobile/src/components`: sistema visual compartido de la app.
+- `apps/mobile/src/lib`: clientes de infraestructura.
+- `apps/mobile/src/store`: estado efímero de ejecución musical.
+- `apps/mobile/src/types/database.generated.ts`: contrato generado de PostgreSQL.
+- `infra/supabase/migrations`: esquema PostgreSQL reproducible y políticas RLS.
 
 La app comienza sin datos simulados. Los invitados trabajan únicamente con almacenamiento local; los usuarios autenticados consultan y sincronizan con Supabase. El backend local se recrea mediante `npm run backend:reset`; producción no debe recibir migraciones hasta aprobar el ADR de baseline remoto.
 

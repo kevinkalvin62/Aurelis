@@ -13,18 +13,22 @@ o claves `sb_secret_*`.
 
 ## Desarrollo local
 
-1. Copiar `.env.example` a `.env.local`.
+1. Copiar `apps/mobile/.env.example` a `apps/mobile/.env.local`.
 2. Ejecutar `npm run backend:start`.
 3. Tomar `Project URL` y `Publishable` de `npm run backend:status`.
-4. Completar `.env.local` y reiniciar Metro.
+4. Completar `apps/mobile/.env.local` y reiniciar Metro.
 
-`.env`, `.env.*` y sus variantes locales están ignorados; `.env.example` es la
-única excepción versionada y contiene placeholders.
+`.env`, `.env.*` y sus variantes locales están ignorados;
+`apps/mobile/.env.example` es la única excepción versionada y contiene
+placeholders.
 
 ## EAS
 
 Los perfiles `preview` y `production` declaran explícitamente su environment y
 usan el mismo proyecto Supabase existente. Los valores son públicos y se
-conservan en `eas.json` hasta que una migración al almacén de variables EAS pueda
+conservan en `apps/mobile/eas.json` hasta que una migración al almacén de variables EAS pueda
 verificarse sin romper builds. Las credenciales de firma Android permanecen en
 EAS y no forman parte de estas variables.
+
+Los comandos Expo y EAS resuelven su proyecto desde `apps/mobile`. Los scripts
+raíz delegan Expo al workspace; para EAS se debe ejecutar desde ese directorio.

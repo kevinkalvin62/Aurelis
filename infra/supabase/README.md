@@ -18,7 +18,10 @@ npm run backend:types
 npm run backend:status
 ```
 
-`backend:reset` elimina únicamente la base local, aplica las nueve migraciones en
+Los comandos se ejecutan desde la raíz del repositorio y pasan `infra` como
+project workdir; la CLI resuelve este directorio `supabase` de forma
+convencional. `backend:reset` elimina únicamente la
+base local, aplica las nueve migraciones en
 orden y ejecuta `seed.sql`. El seed está vacío intencionalmente: la reproducción
 del esquema no depende de contenido propiedad de músicos.
 
@@ -29,7 +32,7 @@ del esquema no depende de contenido propiedad de músicos.
   remoto, sin filas ni secretos.
 - `migrations/20260629*` y `20260630*`: cambios incrementales existentes.
 - `seed.sql`: punto de entrada explícito para datos de desarrollo futuros.
-- `src/types/database.generated.ts`: tipos producidos desde el estado local final.
+- `apps/mobile/src/types/database.generated.ts`: tipos producidos desde el estado local final.
 
 ## Producción
 

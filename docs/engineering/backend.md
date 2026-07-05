@@ -50,8 +50,9 @@ ADR y requiere aprobación antes de cualquier despliegue SQL.
 
 ## Tipos
 
-`npm run backend:types` genera `src/types/database.generated.ts` desde el estado
-local final. El generador normaliza el final de archivo y produce salida
+`npm run backend:types` genera
+`apps/mobile/src/types/database.generated.ts` desde el estado local final. El
+generador normaliza el final de archivo y produce salida
 determinista. `createClient<Database>` convierte el esquema en contrato de
 compilación para consultas, inserts, updates y RPC.
 
@@ -69,3 +70,7 @@ npm run backend:stop
 
 `backend:reset` y `backend:stop` afectan solamente los contenedores locales.
 Ningún script del repositorio usa `--linked`.
+
+La infraestructura versionada vive en `infra/supabase`. Los comandos raíz pasan
+`infra` como project workdir para que Supabase CLI resuelva su directorio
+convencional `supabase`; no dependen del directorio actual.
