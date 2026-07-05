@@ -1,8 +1,14 @@
 # ADR 0002 — Límites del monorepo y ownership de configuración
 
-Estado: Propuesto  
+Estado: Aprobado — alternativa 2  
 Fecha: 4 de julio de 2026  
 Decisores: Product y Engineering
+
+## Decisión
+
+Product aprobó explícitamente la alternativa 2 el 4 de julio de 2026, con las
+reglas y criterios de aceptación definidos en este ADR. La migración física queda
+autorizada bajo esos límites.
 
 ## Problema
 
