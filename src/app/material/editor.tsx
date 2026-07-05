@@ -4,6 +4,8 @@ import { router, useLocalSearchParams } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/button";
+import { ExperienceState } from "@/components/ui/experience-state";
+import { ModalHeader } from "@/components/ui/modal-header";
 import { colors, radii, spacing } from "@/constants/design";
 import { suggestedInstrumentKey } from "@/features/organizations/instrument-material";
 import {
@@ -73,29 +75,36 @@ export default function MaterialEditorScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <View style={styles.nav}>
-        <Pressable onPress={() => router.back()}>
-          <Text style={styles.cancel}>Cancelar</Text>
-        </Pressable>
-        <Text style={styles.navTitle}>Material</Text>
-        <Button
-          compact
-          label={saving ? "Guardando…" : "Guardar"}
-          disabled={saving || !instrument}
-          onPress={submit}
-        />
-      </View>
+      <ModalHeader
+        title="Material"
+        onCancel={() => router.back()}
+        action={
+          <Button
+            compact
+            label={saving ? "Guardando…" : "Guardar"}
+            disabled={saving || !instrument}
+            onPress={submit}
+          />
+        }
+      />
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.eyebrow}>MATERIAL POR INSTRUMENTO</Text>
         <Text style={styles.title}>{songTitle}</Text>
         <Text style={styles.label}>INSTRUMENTO FUENTE</Text>
         {isLoading ? (
-          <Text style={styles.empty}>Cargando instrumentos…</Text>
+          <ExperienceState
+            kind="loading"
+            message="Cargando instrumentos…"
+            messageStyle={styles.empty}
+          />
         ) : instruments.length ? (
           <View style={styles.options}>
             {instruments.map((option) => (
               <Pressable
                 key={option.id}
+                accessibilityRole="button"
+                accessibilityLabel={`Instrumento fuente: ${option.name}`}
+                accessibilityState={{ selected: instrument?.id === option.id }}
                 onPress={() => chooseInstrument(option)}
                 style={[styles.option, instrument?.id === option.id && styles.optionActive]}
               >
@@ -105,10 +114,15 @@ export default function MaterialEditorScreen() {
             ))}
           </View>
         ) : (
-          <Text style={styles.empty}>No hay instrumentos registrados en Supabase.</Text>
+          <ExperienceState
+            kind="empty"
+            message="No hay instrumentos registrados en Supabase."
+            messageStyle={styles.empty}
+          />
         )}
         <Text style={styles.label}>TONALIDAD ESCRITA</Text>
         <TextInput
+          accessibilityLabel="Tonalidad escrita"
           value={key}
           onChangeText={setKey}
           placeholder={instrument ? suggestedInstrumentKey(songKey, instrument) : songKey}
@@ -117,6 +131,7 @@ export default function MaterialEditorScreen() {
         />
         <Text style={styles.label}>NOTAS / SECUENCIA</Text>
         <TextInput
+          accessibilityLabel="Notas o secuencia"
           multiline
           value={content}
           onChangeText={setContent}
@@ -126,6 +141,7 @@ export default function MaterialEditorScreen() {
         />
         <Text style={styles.label}>INDICACIONES</Text>
         <TextInput
+          accessibilityLabel="Indicaciones"
           multiline
           value={notes}
           onChangeText={setNotes}
@@ -140,17 +156,6 @@ export default function MaterialEditorScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
-  nav: {
-    height: 64,
-    paddingHorizontal: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
-  },
-  cancel: { color: colors.textSecondary, fontSize: 13 },
-  navTitle: { color: colors.text, fontSize: 14, fontWeight: "700" },
   content: {
     padding: spacing.lg,
     paddingBottom: 80,
@@ -178,7 +183,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  optionActive: { borderColor: colors.accent, backgroundColor: "#281A1D" },
+  optionActive: { borderColor: colors.accent, backgroundColor: colors.surfaceSelected },
   optionText: { color: colors.text, fontSize: 10 },
   optionKey: { color: colors.accent, fontSize: 9, fontWeight: "800" },
   input: {

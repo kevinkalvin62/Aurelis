@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, ViewStyle } from "react-native";
-import { colors, radii } from "@/constants/design";
+import { colors, radii, touchTargets } from "@/constants/design";
 
 interface ButtonProps {
   label: string;
@@ -21,8 +21,11 @@ export function Button({
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled }}
       onPress={onPress}
       disabled={disabled}
+      hitSlop={compact ? touchTargets.hitSlop : undefined}
       style={({ pressed }) => [
         styles.base,
         styles[variant],

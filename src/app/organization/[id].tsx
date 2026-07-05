@@ -5,6 +5,9 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 
 import { SafeAreaView } from "react-native-safe-area-context";
 import { SongRow } from "@/components/song-row";
 import { Button } from "@/components/ui/button";
+import { Chip } from "@/components/ui/chip";
+import { ExperienceState } from "@/components/ui/experience-state";
+import { SurfaceCard } from "@/components/ui/surface-card";
 import { colors, radii, spacing } from "@/constants/design";
 import {
   addOrganizationMember,
@@ -233,7 +236,11 @@ export default function OrganizationScreen() {
               ) : null}
             </View>
             {songsLoading ? (
-              <Text style={styles.empty}>Cargando biblioteca…</Text>
+              <ExperienceState
+                kind="loading"
+                message="Cargando biblioteca…"
+                messageStyle={styles.empty}
+              />
             ) : songs.length ? (
               <View style={styles.list}>
                 {songs.map((song) => (
@@ -261,7 +268,11 @@ export default function OrganizationScreen() {
                 ))}
               </View>
             ) : (
-              <Text style={styles.empty}>Esta organización todavía no tiene canciones.</Text>
+              <ExperienceState
+                kind="empty"
+                message="Esta organización todavía no tiene canciones."
+                messageStyle={styles.empty}
+              />
             )}
           </>
         ) : null}
@@ -308,7 +319,11 @@ export default function OrganizationScreen() {
                 </Pressable>
               ))
             ) : (
-              <Text style={styles.empty}>Aún no hay programas para esta organización.</Text>
+              <ExperienceState
+                kind="empty"
+                message="Aún no hay programas para esta organización."
+                messageStyle={styles.empty}
+              />
             )}
           </>
         ) : null}
@@ -340,10 +355,14 @@ export default function OrganizationScreen() {
               </View>
             ) : null}
             {membersLoading ? (
-              <Text style={styles.empty}>Cargando integrantes…</Text>
+              <ExperienceState
+                kind="loading"
+                message="Cargando integrantes…"
+                messageStyle={styles.empty}
+              />
             ) : (
               members.map((member) => (
-                <View key={member.id} style={styles.memberCard}>
+                <SurfaceCard key={member.id} style={styles.memberCard}>
                   <View style={styles.memberTop}>
                     <View style={styles.memberAvatar}>
                       <Text style={styles.memberInitial}>
@@ -368,25 +387,23 @@ export default function OrganizationScreen() {
                   {member.instruments.length ? (
                     <View style={styles.chips}>
                       {member.instruments.map((instrument) => (
-                        <View key={instrument.id} style={styles.instrumentChip}>
-                          <Text style={styles.chipText}>
-                            {instrument.isPrimary ? "★ " : ""}
-                            {instrument.instrumentName} · {instrument.transpositionKey ?? "C"}
-                          </Text>
-                        </View>
+                        <Chip
+                          key={instrument.id}
+                          label={`${instrument.isPrimary ? "★ " : ""}${instrument.instrumentName} · ${instrument.transpositionKey ?? "C"}`}
+                        />
                       ))}
                     </View>
                   ) : null}
                   {canAdmin && member.role !== "owner" ? (
                     <View style={styles.roles}>
                       {(["admin", "director", "musician"] as const).map((role) => (
-                        <Pressable
+                        <Chip
                           key={role}
                           onPress={() => changeRole(member.id, role)}
-                          style={[styles.role, member.role === role && styles.roleActive]}
-                        >
-                          <Text style={styles.roleText}>{organizationRoleLabel(role)}</Text>
-                        </Pressable>
+                          selected={member.role === role}
+                          label={organizationRoleLabel(role)}
+                          labelStyle={styles.roleText}
+                        />
                       ))}
                       {organization?.role === "owner" ? (
                         <Pressable
@@ -467,7 +484,7 @@ export default function OrganizationScreen() {
                       )}
                     </View>
                   ) : null}
-                </View>
+                </SurfaceCard>
               ))
             )}
           </>
@@ -596,10 +613,6 @@ const styles = StyleSheet.create({
   },
   memberCard: {
     padding: 15,
-    borderRadius: radii.md,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
     marginBottom: 10,
   },
   memberTop: { flexDirection: "row", alignItems: "center", gap: 11 },
@@ -614,13 +627,6 @@ const styles = StyleSheet.create({
   memberInitial: { color: colors.accent, fontWeight: "800" },
   smallAction: { color: colors.accent, fontSize: 9, fontWeight: "800" },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 12 },
-  instrumentChip: {
-    paddingHorizontal: 9,
-    paddingVertical: 6,
-    borderRadius: radii.pill,
-    backgroundColor: colors.surfaceElevated,
-  },
-  chipText: { color: colors.textSecondary, fontSize: 9 },
   roles: { flexDirection: "row", gap: 6, marginTop: 12 },
   role: {
     paddingHorizontal: 9,
@@ -629,7 +635,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  roleActive: { borderColor: colors.accent, backgroundColor: "#281A1D" },
   roleText: {
     color: colors.textSecondary,
     fontSize: 8,

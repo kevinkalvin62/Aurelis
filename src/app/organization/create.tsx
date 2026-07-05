@@ -4,6 +4,8 @@ import { router } from "expo-router";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/button";
+import { FieldLabel } from "@/components/ui/field-label";
+import { ModalHeader } from "@/components/ui/modal-header";
 import { colors, radii, spacing } from "@/constants/design";
 import {
   createOrganization,
@@ -63,24 +65,32 @@ export default function CreateOrganizationScreen() {
   };
   return (
     <SafeAreaView style={styles.safe}>
-      <View style={styles.nav}>
-        <Pressable onPress={() => router.back()}>
-          <Text style={styles.cancel}>Cancelar</Text>
-        </Pressable>
-        <Text style={styles.navTitle}>Nueva organización</Text>
-        <Button label={saving ? "Creando…" : "Crear"} compact disabled={saving} onPress={submit} />
-      </View>
+      <ModalHeader
+        title="Nueva organización"
+        onCancel={() => router.back()}
+        action={
+          <Button
+            label={saving ? "Creando…" : "Crear"}
+            compact
+            disabled={saving}
+            onPress={submit}
+          />
+        }
+      />
       <View style={styles.content}>
         <Text style={styles.eyebrow}>ORGANIZACIÓN</Text>
         <Text style={styles.title}>Crea tu espacio</Text>
         <Text style={styles.copy}>
           Tendrás una biblioteca y un espacio privado para tu equipo. Tu rol inicial será owner.
         </Text>
-        <Text style={styles.label}>TIPO</Text>
+        <FieldLabel>TIPO</FieldLabel>
         <View style={styles.typeOptions}>
           {organizationTypes.map((option) => (
             <Pressable
               key={option.value}
+              accessibilityRole="button"
+              accessibilityLabel={`Tipo de organización: ${option.label}`}
+              accessibilityState={{ selected: type === option.value }}
               onPress={() => setType(option.value)}
               style={[styles.typeOption, type === option.value && styles.typeActive]}
             >
@@ -90,18 +100,20 @@ export default function CreateOrganizationScreen() {
             </Pressable>
           ))}
         </View>
-        <Text style={styles.label}>NOMBRE</Text>
+        <FieldLabel>NOMBRE</FieldLabel>
         <TextInput
+          accessibilityLabel="Nombre de la organización"
           value={name}
           onChangeText={changeName}
           placeholder="Nombre de tu grupo"
           placeholderTextColor="#77706C"
           style={styles.input}
         />
-        <Text style={styles.label}>IDENTIFICADOR</Text>
+        <FieldLabel>IDENTIFICADOR</FieldLabel>
         <View style={styles.slugRow}>
           <Text style={styles.at}>@</Text>
           <TextInput
+            accessibilityLabel="Identificador de la organización"
             value={slug}
             onChangeText={(value) => {
               setEditedSlug(true);
@@ -123,17 +135,6 @@ export default function CreateOrganizationScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
-  nav: {
-    height: 64,
-    paddingHorizontal: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
-  },
-  cancel: { color: colors.textSecondary, fontSize: 13 },
-  navTitle: { color: colors.text, fontSize: 14, fontWeight: "700" },
   content: { padding: spacing.lg, width: "100%", maxWidth: 620, alignSelf: "center" },
   eyebrow: {
     color: colors.accent,
@@ -156,14 +157,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 20,
   },
-  label: {
-    color: colors.textSecondary,
-    fontSize: 9,
-    fontWeight: "900",
-    letterSpacing: 1.4,
-    marginTop: 18,
-    marginBottom: 8,
-  },
   typeOptions: { flexDirection: "row", flexWrap: "wrap", gap: 7 },
   typeOption: {
     paddingHorizontal: 11,
@@ -173,7 +166,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     backgroundColor: colors.surface,
   },
-  typeActive: { borderColor: colors.accent, backgroundColor: "#281A1D" },
+  typeActive: { borderColor: colors.accent, backgroundColor: colors.surfaceSelected },
   typeText: { color: colors.textSecondary, fontSize: 10, fontWeight: "700" },
   typeTextActive: { color: colors.text },
   input: {

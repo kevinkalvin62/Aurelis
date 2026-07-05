@@ -4,6 +4,8 @@ import DraggableFlatList from "react-native-draggable-flatlist";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/button";
 import { DateField } from "@/components/ui/date-field";
+import { FieldLabel } from "@/components/ui/field-label";
+import { ModalHeader } from "@/components/ui/modal-header";
 import { colors, radii, spacing } from "@/constants/design";
 import type { SetlistCreationMode } from "@/features/setlists/setlist-draft";
 import { useSetlistCreator } from "@/features/setlists/use-setlist-creator";
@@ -41,35 +43,42 @@ export default function CreateSetlistScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <View style={styles.nav}>
-        <Pressable onPress={() => router.back()}>
-          <Text style={styles.cancel}>Cancelar</Text>
-        </Pressable>
-        <Text style={styles.navTitle}>Nuevo programa</Text>
-        <Button
-          label={saving ? "Guardando…" : "Guardar"}
-          compact
-          disabled={saving}
-          onPress={submit}
-        />
-      </View>
+      <ModalHeader
+        title="Nuevo programa"
+        onCancel={() => router.back()}
+        action={
+          <Button
+            label={saving ? "Guardando…" : "Guardar"}
+            compact
+            disabled={saving}
+            onPress={submit}
+          />
+        }
+      />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.modeTabs}>
           <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Crear programa manualmente"
+            accessibilityState={{ selected: mode === "manual" }}
             onPress={() => setMode("manual")}
             style={[styles.mode, mode === "manual" && styles.modeActive]}
           >
             <Text style={styles.modeText}>Manual</Text>
           </Pressable>
           <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Crear programa pegando una lista"
+            accessibilityState={{ selected: mode === "import" }}
             onPress={() => setMode("import")}
             style={[styles.mode, mode === "import" && styles.modeActive]}
           >
             <Text style={styles.modeText}>Pegar lista</Text>
           </Pressable>
         </View>
-        <Text style={styles.label}>TÍTULO</Text>
+        <FieldLabel>TÍTULO</FieldLabel>
         <TextInput
+          accessibilityLabel="Título del programa"
           value={title}
           onChangeText={setTitle}
           placeholder="Domingo AM"
@@ -78,18 +87,19 @@ export default function CreateSetlistScreen() {
         />
         <View style={styles.twoCols}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.label}>FECHA</Text>
+            <FieldLabel>FECHA</FieldLabel>
             <DateField value={date} onChange={setDate} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.label}>CONTEXTO</Text>
+            <FieldLabel>CONTEXTO</FieldLabel>
             <View style={styles.context}>
               <Text style={styles.contextText}>{organizationId ? "Organización" : "Local"}</Text>
             </View>
           </View>
         </View>
-        <Text style={styles.label}>NOTAS GENERALES</Text>
+        <FieldLabel>NOTAS GENERALES</FieldLabel>
         <TextInput
+          accessibilityLabel="Notas generales"
           multiline
           value={notes}
           onChangeText={setNotes}
@@ -99,8 +109,9 @@ export default function CreateSetlistScreen() {
         />
         {mode === "import" ? (
           <>
-            <Text style={styles.label}>MENSAJE O LISTA</Text>
+            <FieldLabel>MENSAJE O LISTA</FieldLabel>
             <TextInput
+              accessibilityLabel="Mensaje o lista de canciones"
               multiline
               value={source}
               onChangeText={setSource}
@@ -132,9 +143,10 @@ export default function CreateSetlistScreen() {
           </>
         ) : (
           <>
-            <Text style={styles.label}>AGREGAR CANCIÓN LIBRE</Text>
+            <FieldLabel>AGREGAR CANCIÓN LIBRE</FieldLabel>
             <View style={styles.addRow}>
               <TextInput
+                accessibilityLabel="Nombre de la canción libre"
                 value={freeTitle}
                 onChangeText={setFreeTitle}
                 onSubmitEditing={addFreeEntry}
@@ -144,9 +156,15 @@ export default function CreateSetlistScreen() {
               />
               <Button compact label="Agregar" onPress={addFreeEntry} />
             </View>
-            <Text style={styles.label}>RECURSOS DISPONIBLES (OPCIONALES)</Text>
+            <FieldLabel>RECURSOS DISPONIBLES (OPCIONALES)</FieldLabel>
             {songs.map((song) => (
-              <Pressable key={song.id} onPress={() => addLibrarySong(song)} style={styles.songRow}>
+              <Pressable
+                key={song.id}
+                accessibilityRole="button"
+                accessibilityLabel={`Agregar ${song.title} al programa`}
+                onPress={() => addLibrarySong(song)}
+                style={styles.songRow}
+              >
                 <View style={{ flex: 1 }}>
                   <Text style={styles.songTitle}>{song.title}</Text>
                   <Text style={styles.songMeta}>
@@ -164,7 +182,7 @@ export default function CreateSetlistScreen() {
           </>
         )}
         <View style={styles.songHeader}>
-          <Text style={styles.label}>ORDEN DEL EVENTO</Text>
+          <FieldLabel>ORDEN DEL EVENTO</FieldLabel>
           <Text style={styles.count}>{entries.length} canciones</Text>
         </View>
         {process.env.EXPO_OS === "web" ? (
@@ -226,17 +244,6 @@ export default function CreateSetlistScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
-  nav: {
-    height: 64,
-    paddingHorizontal: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
-  },
-  cancel: { color: colors.textSecondary, fontSize: 13 },
-  navTitle: { color: colors.text, fontSize: 14, fontWeight: "700" },
   content: {
     padding: spacing.lg,
     paddingBottom: 100,
@@ -255,14 +262,6 @@ const styles = StyleSheet.create({
   mode: { flex: 1, alignItems: "center", padding: 10, borderRadius: 7 },
   modeActive: { backgroundColor: colors.surfaceElevated },
   modeText: { color: colors.text, fontSize: 11, fontWeight: "700" },
-  label: {
-    color: colors.textSecondary,
-    fontSize: 9,
-    fontWeight: "900",
-    letterSpacing: 1.4,
-    marginTop: 18,
-    marginBottom: 8,
-  },
   input: {
     minHeight: 50,
     backgroundColor: colors.surface,
@@ -348,7 +347,7 @@ const styles = StyleSheet.create({
   },
   linkState: { color: colors.success, fontSize: 8, marginTop: 3 },
   arrow: { color: colors.textSecondary, fontSize: 18, padding: 7 },
-  remove: { color: "#D06474", fontSize: 21, padding: 7 },
+  remove: { color: colors.destructive, fontSize: 21, padding: 7 },
   empty: {
     color: colors.textSecondary,
     textAlign: "center",

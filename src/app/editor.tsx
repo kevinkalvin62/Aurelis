@@ -3,6 +3,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/button";
+import { ModalHeader } from "@/components/ui/modal-header";
 import { colors, radii, spacing } from "@/constants/design";
 import { SOURCE_INSTRUMENT_OPTIONS } from "@/features/music-engine/instruments";
 import {
@@ -53,18 +54,18 @@ export default function EditorScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <View style={styles.nav}>
-        <Pressable onPress={() => router.back()}>
-          <Text style={styles.cancel}>Cancelar</Text>
-        </Pressable>
-        <Text style={styles.navTitle}>{song ? "Editar canción" : "Nueva canción"}</Text>
-        <Button
-          label={saving ? "Guardando…" : saved ? "Guardada" : "Guardar"}
-          compact
-          disabled={saving}
-          onPress={submit}
-        />
-      </View>
+      <ModalHeader
+        title={song ? "Editar canción" : "Nueva canción"}
+        onCancel={() => router.back()}
+        action={
+          <Button
+            label={saving ? "Guardando…" : saved ? "Guardada" : "Guardar"}
+            compact
+            disabled={saving}
+            onPress={submit}
+          />
+        }
+      />
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <Text style={styles.eyebrow}>{isDirty ? "CAMBIOS SIN GUARDAR" : "EDITOR AURELIS"}</Text>
         <Field
@@ -86,6 +87,9 @@ export default function EditorScreen() {
           {songContentTypes.map((option) => (
             <Pressable
               key={option.value}
+              accessibilityRole="button"
+              accessibilityLabel={`Tipo de contenido: ${option.label}`}
+              accessibilityState={{ selected: contentType === option.value }}
               onPress={() => chooseContentType(option.value)}
               style={[styles.typeCard, contentType === option.value && styles.typeCardActive]}
             >
@@ -110,6 +114,9 @@ export default function EditorScreen() {
               {songNotations.map((option) => (
                 <Pressable
                   key={option.value}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Notación ${option.label}`}
+                  accessibilityState={{ selected: notation === option.value }}
                   onPress={() => chooseNotation(option.value)}
                   style={[styles.notation, notation === option.value && styles.notationActive]}
                 >
@@ -146,6 +153,9 @@ export default function EditorScreen() {
               {SOURCE_INSTRUMENT_OPTIONS.map((option) => (
                 <Pressable
                   key={option}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Instrumento fuente: ${option === "Concert" ? "General o Concert" : option}`}
+                  accessibilityState={{ selected: sourceInstrumentName === option }}
                   onPress={() => onChange(option)}
                   style={[
                     styles.instrumentOption,
@@ -173,6 +183,9 @@ export default function EditorScreen() {
               render={({ field: { value, onChange } }) => (
                 <View style={styles.visibilityRow}>
                   <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="Visibilidad privada"
+                    accessibilityState={{ selected: value === "private" }}
                     onPress={() => onChange("private")}
                     style={[styles.visibility, value === "private" && styles.visibilityActive]}
                   >
@@ -180,6 +193,9 @@ export default function EditorScreen() {
                     <Text style={styles.visibilityCopy}>Sólo tú</Text>
                   </Pressable>
                   <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="Visibilidad pública"
+                    accessibilityState={{ selected: value === "public" }}
                     onPress={() => onChange("public")}
                     style={[styles.visibility, value === "public" && styles.visibilityActive]}
                   >
@@ -213,6 +229,7 @@ export default function EditorScreen() {
           name="content"
           render={({ field: { value, onChange } }) => (
             <TextInput
+              accessibilityLabel="Contenido de la canción"
               multiline
               value={value}
               onChangeText={onChange}
@@ -232,7 +249,12 @@ export default function EditorScreen() {
           Texto plano compatible · espacios preservados · transporte automático
         </Text>
         {canDelete ? (
-          <Pressable onPress={confirmDelete} style={styles.deleteButton}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Retirar canción"
+            onPress={confirmDelete}
+            style={styles.deleteButton}
+          >
             <Text style={styles.deleteText}>Retirar canción</Text>
           </Pressable>
         ) : null}
@@ -262,6 +284,7 @@ function Field({
       name={name}
       render={({ field: { value, onChange, onBlur } }) => (
         <TextInput
+          accessibilityLabel={placeholder}
           value={value}
           onChangeText={onChange}
           onBlur={onBlur}
@@ -281,17 +304,6 @@ function Field({
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
-  nav: {
-    height: 64,
-    paddingHorizontal: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
-  },
-  cancel: { color: colors.textSecondary, fontSize: 13 },
-  navTitle: { color: colors.text, fontSize: 14, fontWeight: "700" },
   scroll: {
     padding: spacing.lg,
     paddingBottom: 80,
@@ -341,7 +353,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 8,
   },
-  typeCardActive: { borderColor: colors.accent, backgroundColor: "#281A1D" },
+  typeCardActive: { borderColor: colors.accent, backgroundColor: colors.surfaceSelected },
   typeMark: { color: colors.textSecondary, fontSize: 18, fontWeight: "700" },
   typeLabel: {
     color: colors.textSecondary,
@@ -397,7 +409,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     backgroundColor: colors.surface,
   },
-  visibilityActive: { borderColor: colors.accent, backgroundColor: "#281A1D" },
+  visibilityActive: { borderColor: colors.accent, backgroundColor: colors.surfaceSelected },
   visibilityTitle: { color: colors.text, fontSize: 11, fontWeight: "700" },
   visibilityCopy: { color: colors.textSecondary, fontSize: 9, marginTop: 3 },
   help: {
@@ -443,5 +455,5 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   deleteButton: { alignItems: "center", padding: 14, marginTop: 28 },
-  deleteText: { color: "#D06474", fontSize: 12, fontWeight: "700" },
+  deleteText: { color: colors.destructive, fontSize: 12, fontWeight: "700" },
 });
