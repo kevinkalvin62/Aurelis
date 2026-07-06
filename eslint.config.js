@@ -24,4 +24,10 @@ module.exports = defineConfig([
       globals: globals.node,
     },
   },
+  {
+    files: ["apps/landing/**/*.js"],
+    languageOptions: {
+      globals: { ...globals.browser, ...globals.node },
+    },
+  },
 ]);
