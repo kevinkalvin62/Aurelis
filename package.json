@@ -12,7 +12,7 @@
     "android": "npm run android --workspace @aurelis/mobile",
     "ios": "npm run ios --workspace @aurelis/mobile",
     "web": "npm run web --workspace @aurelis/mobile",
-    "landing": "npm run start --workspace @aurelis/landing",
+    "landing": "npm run dev --workspace @aurelis/landing",
     "landing:check": "npm run check --workspace @aurelis/landing",
     "backend:start": "supabase --workdir infra start",
     "backend:stop": "supabase --workdir infra stop",

@@ -1,4 +1,6 @@
-# Aurelis Landing Test 01 — The Hook
+# Aurelis Landing V1
+
+Landing narrativa independiente construida con Next.js, React, TypeScript, Tailwind CSS y Motion.
 
 ## Ejecutar
 
@@ -6,21 +8,19 @@
 npm run landing
 ```
 
-Abrir `http://localhost:4173`.
+Abrir `http://localhost:3000`.
+
+```bash
+npm run build --workspace @aurelis/landing
+```
 
 ## Decisiones
 
 - La sala aparece antes que Aurelis; las voces son texto libre, nunca tarjetas.
-- El silencio ocupa dos bloques completos y el scroll permanece bajo control del visitante.
-- Mobile conserva la secuencia, pero apila el cierre y amplía las pausas.
-- El Home usa `assets/archive/screens/20-real-home.png` sin modificaciones.
-- Las animaciones se limitan a opacidad, desplazamientos de 8–18 px y una respiración óptica de 1.2%.
+- La narrativa recorre Home, Biblioteca, Programas, Organizaciones, filosofía, memoria y CTA.
+- Mobile conserva ritmo vertical propio y no comprime las composiciones desktop.
+- Todas las pantallas mostradas provienen del archivo real de Aurelis.
+- Motion se limita a opacidad, desplazamientos de 8–18 px y respiración óptica.
 - `prefers-reduced-motion` conserva toda la historia sin movimiento.
 
-## Dudas para Product
-
-1. ¿“Comenzar con Aurelis” debe abrir modo invitado, registro o una tienda?
-2. ¿“Ver cómo funciona” debe repetir Chapter 01 o avanzar a un futuro Chapter 02?
-3. ¿La captura archivada sigue siendo la baseline oficial de Home para esta prueba?
-4. ¿Las seis voces tienen la densidad correcta en móvil o conviene reducirlas a cuatro?
-5. ¿El texto “Todo listo antes del primer acorde” aporta cierre o explica demasiado?
+La CTA V1 conserva el interés en el navegador. Está aislada en `components/waitlist-cta.tsx` para conectar posteriormente un proveedor de lista de espera sin tocar la narrativa.
