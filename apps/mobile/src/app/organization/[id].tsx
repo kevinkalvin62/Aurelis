@@ -12,11 +12,11 @@ import { colors, radii, spacing } from "@/constants/design";
 import {
   addOrganizationMember,
   changeOrganizationRole,
-  listInstruments,
   listMyOrganizations,
   listOrganizationMembers,
   listOrganizationSetlists,
   listOrganizationSongs,
+  listSelectableInstruments,
   removeOrganizationMember,
   saveMemberInstruments,
 } from "@/features/organizations/organization-service";
@@ -71,8 +71,8 @@ export default function OrganizationScreen() {
     isLoading: instrumentsLoading,
     isError: instrumentsError,
   } = useQuery({
-    queryKey: ["instruments"],
-    queryFn: listInstruments,
+    queryKey: ["selectable-instruments"],
+    queryFn: listSelectableInstruments,
     enabled: accessMode === "authenticated",
   });
   const mergeSongs = useSongStore((state) => state.mergeRemoteSongs);
@@ -144,10 +144,21 @@ export default function OrganizationScreen() {
   };
   const saveInstruments = async (memberId: string) => {
     setSavingInstruments(true);
+    const visibleInstrumentIds = new Set(instruments.map((instrument) => instrument.id));
+    const member = members.find((item) => item.id === memberId);
+    const hiddenExistingInstrumentIds =
+      member?.instruments
+        .map((instrument) => instrument.instrumentId)
+        .filter((instrumentId) => !visibleInstrumentIds.has(instrumentId)) ?? [];
     const selected = instruments.filter((instrument) =>
       selectedInstrumentIds.includes(instrument.id),
     );
-    const error = await saveMemberInstruments(memberId, selected, primaryInstrumentId);
+    const error = await saveMemberInstruments(
+      memberId,
+      selected,
+      primaryInstrumentId,
+      hiddenExistingInstrumentIds,
+    );
     setSavingInstruments(false);
     if (error) {
       toast.error(error);
@@ -471,7 +482,12 @@ export default function OrganizationScreen() {
                           })}
                           <View style={styles.pickerFooter}>
                             <Text style={styles.selectionCount}>
-                              {selectedInstrumentIds.length} seleccionados
+                              {
+                                instruments.filter((instrument) =>
+                                  selectedInstrumentIds.includes(instrument.id),
+                                ).length
+                              }{" "}
+                              seleccionados
                             </Text>
                             <Button
                               compact

@@ -153,7 +153,7 @@ export default function EditorScreen() {
                 <Pressable
                   key={option}
                   accessibilityRole="button"
-                  accessibilityLabel={`Instrumento fuente: ${option === "Concert" ? "General o Concert" : option}`}
+                  accessibilityLabel={`Instrumento fuente: ${option}`}
                   accessibilityState={{ selected: sourceInstrumentName === option }}
                   onPress={() => onChange(option)}
                   style={[
@@ -161,9 +161,7 @@ export default function EditorScreen() {
                     sourceInstrumentName === option && styles.instrumentOptionActive,
                   ]}
                 >
-                  <Text style={styles.instrumentOptionText}>
-                    {option === "Concert" ? "General / Concert" : option}
-                  </Text>
+                  <Text style={styles.instrumentOptionText}>{option}</Text>
                 </Pressable>
               ))}
             </View>

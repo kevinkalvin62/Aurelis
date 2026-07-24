@@ -6,6 +6,7 @@ describe("song editor model", () => {
     const defaults = getSongEditorDefaults(undefined, "organization-1");
     expect(defaults.visibility).toBe("organization");
     expect(defaults.content).toBe("");
+    expect(defaults.sourceInstrumentName).toBe("Concert");
   });
 
   it("keeps the existing song values", () => {

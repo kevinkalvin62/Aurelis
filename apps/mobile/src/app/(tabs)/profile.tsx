@@ -7,9 +7,9 @@ import { colors, radii, spacing } from "@/constants/design";
 import { useAuthStore } from "@/store/auth-store";
 import { toast } from "@/store/toast-store";
 import {
-  listInstruments,
   listMyInstruments,
   listMyOrganizations,
+  listSelectableInstruments,
 } from "@/features/organizations/organization-service";
 import { listPersonalInstruments, savePersonalInstruments } from "@/features/auth/profile-service";
 
@@ -36,8 +36,8 @@ export default function ProfileScreen() {
     enabled: authenticated,
   });
   const { data: catalog = [] } = useQuery({
-    queryKey: ["instruments"],
-    queryFn: listInstruments,
+    queryKey: ["selectable-instruments"],
+    queryFn: listSelectableInstruments,
     enabled: authenticated,
   });
   const displayName = accessMode === "guest" ? "Invitado" : user?.name || "Músico";
@@ -74,10 +74,15 @@ export default function ProfileScreen() {
   };
   const save = async () => {
     if (!user) return;
+    const visibleInstrumentNames = new Set(catalog.map((instrument) => instrument.name));
+    const hiddenExistingInstrumentNames = personalInstruments
+      .map((instrument) => instrument.instrumentName)
+      .filter((instrumentName) => !visibleInstrumentNames.has(instrumentName));
     const error = await savePersonalInstruments(
       user.id,
       catalog.filter((item) => selectedIds.includes(item.id)),
       primaryId,
+      hiddenExistingInstrumentNames,
     );
     if (error) {
       toast.error(error);

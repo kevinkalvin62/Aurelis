@@ -9,7 +9,7 @@ import { ModalHeader } from "@/components/ui/modal-header";
 import { colors, radii, spacing } from "@/constants/design";
 import { suggestedInstrumentKey } from "@/features/organizations/instrument-material";
 import {
-  listInstruments,
+  listSelectableInstruments,
   saveInstrumentMaterial,
 } from "@/features/organizations/organization-service";
 import { toast } from "@/store/toast-store";
@@ -26,8 +26,8 @@ export default function MaterialEditorScreen() {
     songKey?: string;
   }>();
   const { data: instruments = [], isLoading } = useQuery({
-    queryKey: ["instruments"],
-    queryFn: listInstruments,
+    queryKey: ["selectable-instruments"],
+    queryFn: listSelectableInstruments,
   });
   const [instrumentId, setInstrumentId] = useState("");
   const [key, setKey] = useState("");

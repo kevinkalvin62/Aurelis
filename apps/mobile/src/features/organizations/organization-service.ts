@@ -7,6 +7,7 @@ import {
 import { decodeSetlistSource } from "@/features/setlists/setlist-source";
 import { formatFriendlyDate } from "@/lib/dates";
 import { adaptInstrumentMaterial } from "@/features/organizations/instrument-material";
+import { listSelectablePhysicalInstruments } from "@/features/organizations/instrument-catalog";
 import type {
   Instrument,
   InstrumentMaterial,
@@ -110,6 +111,10 @@ export async function listInstruments(): Promise<Instrument[]> {
   }));
 }
 
+export async function listSelectableInstruments(): Promise<Instrument[]> {
+  return listSelectablePhysicalInstruments(await listInstruments());
+}
+
 export async function listOrganizationMembers(
   organizationId: string,
 ): Promise<OrganizationMember[]> {
@@ -174,6 +179,7 @@ export async function saveMemberInstruments(
   memberId: string,
   selected: Instrument[],
   primaryInstrumentId?: string,
+  preserveInstrumentIds: string[] = [],
 ): Promise<string | null> {
   const { data: existing, error: existingError } = await supabase
     .from("member_instruments")
@@ -193,9 +199,10 @@ export async function saveMemberInstruments(
     if (error) return error.message;
   }
   const selectedIds = new Set(selected.map((instrument) => instrument.id));
+  const preservedIds = new Set(preserveInstrumentIds);
   const removedIds = (existing ?? [])
     .map((row: any) => String(row.instrument_id))
-    .filter((instrumentId) => !selectedIds.has(instrumentId));
+    .filter((instrumentId) => !selectedIds.has(instrumentId) && !preservedIds.has(instrumentId));
   if (removedIds.length) {
     const { error } = await supabase
       .from("member_instruments")

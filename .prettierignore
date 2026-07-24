@@ -7,6 +7,8 @@ apps/mobile/assets/expo.icon
 CLAUDE.md
 coverage
 dist
+apps/landing/.next
+apps/landing/out
 docs/audit
 docs/branding
 docs/foundation

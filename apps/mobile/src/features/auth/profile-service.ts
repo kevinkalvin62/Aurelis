@@ -65,6 +65,7 @@ export async function savePersonalInstruments(
   userId: string,
   selected: Instrument[],
   primaryInstrumentId?: string,
+  preserveInstrumentNames: string[] = [],
 ): Promise<string | null> {
   const { data: existing, error: readError } = await supabase
     .from("user_instruments")
@@ -90,7 +91,11 @@ export async function savePersonalInstruments(
   }
   const removed = (existing ?? [])
     .map((row: any) => String(row.instrument_name))
-    .filter((name) => !selected.some((instrument) => instrument.name === name));
+    .filter(
+      (name) =>
+        !selected.some((instrument) => instrument.name === name) &&
+        !preserveInstrumentNames.includes(name),
+    );
   if (removed.length) {
     const { error } = await supabase
       .from("user_instruments")

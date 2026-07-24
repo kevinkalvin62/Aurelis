@@ -11,7 +11,7 @@ with defaults(name, tuning, transposition_key, written_offset) as (
     ('Violín', array['G3', 'D4', 'A4', 'E5'], 'C', 0),
     ('Viola', array['C3', 'G3', 'D4', 'A4'], 'C', 0),
     ('Violonchelo', array['C2', 'G2', 'D3', 'A3'], 'C', 0),
-    ('Flauta', array[]::text[], 'C', 0),
+    ('Flauta traversa', array[]::text[], 'C', 0),
     ('Clarinete', array[]::text[], 'Bb', 2),
     ('Trompeta', array[]::text[], 'Bb', 2),
     ('Saxofón soprano', array[]::text[], 'Bb', 2),
