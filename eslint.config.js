@@ -5,12 +5,17 @@ const globals = require("globals");
 module.exports = defineConfig([
   globalIgnores([
     "**/.expo/**",
+    "**/.next/**",
+    "**/out/**",
     "**/coverage/**",
     "**/dist/**",
+    "**/build/**",
     "**/node_modules/**",
     "apps/mobile/src/types/database.generated.ts",
   ]),
+
   expoConfig,
+
   {
     settings: {
       "import/resolver": {
@@ -18,12 +23,14 @@ module.exports = defineConfig([
       },
     },
   },
+
   {
     files: ["scripts/**/*.{js,mjs}"],
     languageOptions: {
       globals: globals.node,
     },
   },
+
   {
     files: ["apps/landing/**/*.js"],
     languageOptions: {

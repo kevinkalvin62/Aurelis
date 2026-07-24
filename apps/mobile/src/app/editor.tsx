@@ -8,7 +8,6 @@ import { colors, radii, spacing } from "@/constants/design";
 import { SOURCE_INSTRUMENT_OPTIONS } from "@/features/music-engine/instruments";
 import {
   songContentTypes,
-  songEditorSamples,
   songNotations,
   type SongEditorValues,
 } from "@/features/songs/song-editor-model";
@@ -235,8 +234,6 @@ export default function EditorScreen() {
               onChangeText={onChange}
               autoCapitalize="none"
               autoCorrect={false}
-              placeholder={songEditorSamples[contentType][notation]}
-              placeholderTextColor="#625D59"
               style={[styles.editor, errors.content && styles.error]}
               textAlignVertical="top"
             />

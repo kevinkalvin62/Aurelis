@@ -12,7 +12,6 @@ import { normalizeSongKey } from "./song-mapper";
 import { deleteRemoteSong, syncSong } from "./song-sync";
 import {
   getSongEditorDefaults,
-  songEditorSamples,
   songEditorSchema,
   type SongEditorValues,
 } from "./song-editor-model";
@@ -57,13 +56,10 @@ export function useSongEditor(id?: string, organizationId?: string) {
 
   const chooseContentType = (value: SongContentType) => {
     form.setValue("contentType", value, { shouldDirty: true });
-    if (!song) form.setValue("content", songEditorSamples[value][notation], { shouldDirty: true });
   };
 
   const chooseNotation = (value: MusicNotation) => {
     form.setValue("notation", value, { shouldDirty: true });
-    if (!song)
-      form.setValue("content", songEditorSamples[contentType][value], { shouldDirty: true });
   };
 
   const submit = form.handleSubmit(

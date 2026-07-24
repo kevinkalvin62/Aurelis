@@ -1,4 +1,5 @@
 # Aurelis — Field Test 01
+
 ## Findings & Product Decisions
 
 **Estado:** Consolidado  
@@ -740,18 +741,18 @@ Este modelo temporal debe considerarse en futuras decisiones de Product Design.
 
 # 14. Clasificación preliminar
 
-| Hallazgo | Tipo | Prioridad propuesta |
-|---|---|---|
-| Offline musical | Capacidad estructural | Crítica |
-| Acceso resiliente | Confiabilidad | Alta |
-| Modo Ensayo / Ejecución | Nueva experiencia | Alta |
-| Cambio rápido | Nueva experiencia | Alta |
-| Material compartido express | Colaboración | Alta |
-| Motor armónico | Núcleo musical | Alta |
-| Consulta multiinstrumento | Experiencia musical | Media-alta |
-| Catálogo de instrumentos | Refinamiento V1 | Media |
-| Próximos vs Historial | Refinamiento V1 | Alta |
-| Borrado lógico personal | Datos/experiencia | Media |
+| Hallazgo                    | Tipo                  | Prioridad propuesta |
+| --------------------------- | --------------------- | ------------------- |
+| Offline musical             | Capacidad estructural | Crítica             |
+| Acceso resiliente           | Confiabilidad         | Alta                |
+| Modo Ensayo / Ejecución     | Nueva experiencia     | Alta                |
+| Cambio rápido               | Nueva experiencia     | Alta                |
+| Material compartido express | Colaboración          | Alta                |
+| Motor armónico              | Núcleo musical        | Alta                |
+| Consulta multiinstrumento   | Experiencia musical   | Media-alta          |
+| Catálogo de instrumentos    | Refinamiento V1       | Media               |
+| Próximos vs Historial       | Refinamiento V1       | Alta                |
+| Borrado lógico personal     | Datos/experiencia     | Media               |
 
 La prioridad es preliminar.
 

@@ -33,23 +33,6 @@ export const songNotations: {
   { value: "latin", label: "Latina", example: "DO · RE · MI" },
 ];
 
-export const songEditorSamples: Record<SongContentType, Record<MusicNotation, string>> = {
-  lyrics_chords: {
-    american:
-      "C               Am    C\nTú decías que me amabas, pero era\n       G7\nmentira y con otro me engañabas,",
-    latin:
-      "DO              LAm   DO\nTú decías que me amabas, pero era\n       SOL7\nmentira y con otro me engañabas,",
-  },
-  chords_only: {
-    american: "C   G/B   Am7   Fadd9\nC   G     F     G",
-    latin: "DO   SOL/SI   LAm7   FAadd9\nDO   SOL      FA       SOL",
-  },
-  wind_notes: {
-    american: "/////DEFEDA///// AGFGAGF E\nCD. DACD\nA A#  A# F A A#",
-    latin: "/////RE MI FA MI RE LA/////\nDO RE.  RE LA DO RE",
-  },
-};
-
 export function getSongEditorDefaults(
   song: Song | undefined,
   organizationId: string | undefined,
@@ -62,6 +45,6 @@ export function getSongEditorDefaults(
     contentType: song?.contentType ?? "lyrics_chords",
     notation: song?.notation ?? "american",
     visibility: song?.visibility ?? (organizationId ? "organization" : "private"),
-    content: song?.content ?? songEditorSamples.lyrics_chords.american,
+    content: song?.content ?? "",
   };
 }

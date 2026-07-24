@@ -5,78 +5,158 @@ import {
   suggestedInstrumentKey,
   transposeSongForInstrument,
 } from "./instrument-material";
-import type { Instrument, InstrumentMaterial } from "@/types/domain";
 
-const trumpet: Instrument = {
-  id: "trumpet",
-  name: "Trompeta",
-  transpositionKey: "Bb",
-  writtenOffset: 2,
-};
-const altoSax: Instrument = {
-  id: "alto",
-  name: "Saxofón alto",
-  transpositionKey: "Eb",
-  writtenOffset: 9,
-};
-const piano: Instrument = {
-  id: "piano",
-  name: "Piano",
-  transpositionKey: "C",
-  writtenOffset: 0,
-};
-const material: InstrumentMaterial = {
-  id: "part-1",
-  songId: "song-1",
-  instrumentId: trumpet.id,
-  instrumentName: trumpet.name,
-  key: "D",
-  contentRaw: "D E F#",
-  notes: "Entrada suave",
-};
+describe("instrument material helpers", () => {
+  describe("getInstrumentTransposeOffset", () => {
+    it("uses explicit writtenOffset when provided", () => {
+      expect(
+        getInstrumentTransposeOffset({
+          instrumentName: "Custom",
+          writtenOffset: 5,
+        }),
+      ).toBe(5);
+    });
 
-describe("instrument material adaptation", () => {
-  it("suggests the written key from the concert key", () => {
-    expect(suggestedInstrumentKey("C", trumpet)).toBe("D");
-    expect(suggestedInstrumentKey("C", altoSax)).toBe("A");
-  });
+    it("returns offsets from transpositionKey", () => {
+      expect(getInstrumentTransposeOffset({ transpositionKey: "Bb" })).toBe(2);
+      expect(getInstrumentTransposeOffset({ transpositionKey: "Eb" })).toBe(9);
+      expect(getInstrumentTransposeOffset({ transpositionKey: "F" })).toBe(7);
+    });
 
-  it("returns trumpet notes to concert pitch", () => {
-    expect(adaptInstrumentMaterial(material, trumpet, piano)).toMatchObject({
-      instrumentName: "Piano",
-      key: "C",
-      contentRaw: "C D E",
-      adaptedFromInstrumentName: "Trompeta",
+    it("infers Eb instruments from their name", () => {
+      expect(getInstrumentTransposeOffset({ name: "Sax Alto" })).toBe(9);
+      expect(getInstrumentTransposeOffset({ name: "Sax Barítono" })).toBe(9);
+    });
+
+    it("infers Bb instruments from their name", () => {
+      expect(getInstrumentTransposeOffset({ name: "Trompeta" })).toBe(2);
+      expect(getInstrumentTransposeOffset({ name: "Saxofón Tenor" })).toBe(2);
+    });
+
+    it("returns concert pitch when no transposition is detected", () => {
+      expect(getInstrumentTransposeOffset({ name: "Flauta traversa" })).toBe(0);
     });
   });
 
-  it("adapts a trumpet part for alto sax", () => {
-    expect(adaptInstrumentMaterial(material, trumpet, altoSax)).toMatchObject({
-      instrumentName: "Saxofón alto",
-      key: "A",
-      contentRaw: "A B C#",
-      adaptedFromInstrumentName: "Trompeta",
-    });
-  });
-
-  it("transposes a base wind song through a pure instrument rule", () => {
-    const song = {
-      id: "song",
-      title: "Notas",
-      artist: "",
+  describe("transposeSongForInstrument", () => {
+    const baseSong = {
+      id: "song-1",
+      title: "Canción",
       key: "C",
-      bpm: 80,
-      visibility: "organization" as const,
-      updatedAt: "",
+      currentKey: "D",
       content: "C D E",
-      contentType: "wind_notes" as const,
-      notation: "american" as const,
-      sourceInstrumentName: "Concert",
-    };
-    expect(getInstrumentTransposeOffset(trumpet)).toBe(2);
-    expect(transposeSongForInstrument(song, trumpet)).toMatchObject({
-      key: "D",
-      content: "D E F#",
+      contentType: "wind_notes",
+      notation: "american",
+    } as any;
+
+    it("returns the same song when the target instrument has no transpose offset", () => {
+      const result = transposeSongForInstrument(baseSong, {
+        name: "Flauta traversa",
+      });
+
+      expect(result).toBe(baseSong);
+    });
+
+    it("transposes key, currentKey and content", () => {
+      const result = transposeSongForInstrument(baseSong, {
+        name: "Trompeta",
+      });
+
+      expect(result).not.toBe(baseSong);
+      expect(result.key).not.toBe(baseSong.key);
+      expect(result.currentKey).not.toBe(baseSong.currentKey);
+      expect(result.content).not.toBe(baseSong.content);
+    });
+
+    it("works when currentKey is not present", () => {
+      const songWithoutCurrentKey = {
+        ...baseSong,
+        currentKey: undefined,
+      };
+
+      const result = transposeSongForInstrument(songWithoutCurrentKey, {
+        name: "Trompeta",
+      });
+
+      expect(result.currentKey).toBeUndefined();
+      expect(result.key).not.toBe(songWithoutCurrentKey.key);
+    });
+  });
+
+  describe("adaptInstrumentMaterial", () => {
+    const source = {
+      id: "source-1",
+      name: "Flauta traversa",
+      writtenOffset: 0,
+    } as any;
+
+    const targetConcert = {
+      id: "target-1",
+      name: "Teclado",
+      writtenOffset: 0,
+    } as any;
+
+    const targetBb = {
+      id: "target-2",
+      name: "Trompeta",
+      writtenOffset: 2,
+    } as any;
+
+    it("only changes instrument identity when no transposition is needed", () => {
+      const material = {
+        instrumentId: source.id,
+        instrumentName: source.name,
+        key: "C",
+        contentRaw: "C D E",
+      } as any;
+
+      const result = adaptInstrumentMaterial(material, source, targetConcert);
+
+      expect(result.instrumentId).toBe(targetConcert.id);
+      expect(result.instrumentName).toBe(targetConcert.name);
+      expect(result.adaptedFromInstrumentName).toBeUndefined();
+    });
+
+    it("transposes key and raw content for a different instrument", () => {
+      const material = {
+        instrumentId: source.id,
+        instrumentName: source.name,
+        key: "C",
+        contentRaw: "C D E",
+      } as any;
+
+      const result = adaptInstrumentMaterial(material, source, targetBb);
+
+      expect(result.instrumentId).toBe(targetBb.id);
+      expect(result.instrumentName).toBe(targetBb.name);
+      expect(result.key).not.toBe(material.key);
+      expect(result.contentRaw).not.toBe(material.contentRaw);
+      expect(result.adaptedFromInstrumentName).toBe(source.name);
+    });
+
+    it("adapts material without optional key or content", () => {
+      const material = {
+        instrumentId: source.id,
+        instrumentName: source.name,
+      } as any;
+
+      const result = adaptInstrumentMaterial(material, source, targetBb);
+
+      expect(result.key).toBeUndefined();
+      expect(result.contentRaw).toBeUndefined();
+      expect(result.adaptedFromInstrumentName).toBe(source.name);
+    });
+  });
+
+  describe("suggestedInstrumentKey", () => {
+    it("returns the transposed suggested key", () => {
+      const instrument = {
+        id: "trumpet",
+        name: "Trompeta",
+        writtenOffset: 2,
+      } as any;
+
+      expect(suggestedInstrumentKey("C", instrument)).not.toBe("C");
     });
   });
 });

@@ -14,6 +14,8 @@
     "web": "npm run web --workspace @aurelis/mobile",
     "landing": "npm run dev --workspace @aurelis/landing",
     "landing:check": "npm run check --workspace @aurelis/landing",
+    "apk:check": "node ./scripts/validate-apk-config.mjs",
+    "apk:build": "npm run build:apk --workspace @aurelis/mobile",
     "backend:start": "supabase --workdir infra start",
     "backend:stop": "supabase --workdir infra stop",
     "backend:reset": "supabase --workdir infra db reset",
@@ -30,10 +32,12 @@
     "doctor": "npm run doctor --workspace @aurelis/mobile",
     "export:web": "npm run export:web --workspace @aurelis/mobile",
     "validate:config": "node ./scripts/validate-project-config.mjs",
-    "quality": "npm run lint && npm run format:check && npm run typecheck && npm run test:coverage && npm run validate:config && npm run landing:check",
+    "quality": "npm run lint && npm run format:check && npm run typecheck && npm run test:coverage && npm run validate:config && npm run landing:check && npm run apk:check",
     "test:watch": "vitest"
   },
   "devDependencies": {
+    "@emnapi/core": "1.11.2",
+    "@emnapi/runtime": "1.11.2",
     "@types/react": "~19.2.2",
     "@vitest/coverage-v8": "^4.1.9",
     "eslint": "^9.39.4",

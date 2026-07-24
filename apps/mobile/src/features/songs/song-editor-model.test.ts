@@ -3,7 +3,9 @@ import { getSongEditorDefaults, songEditorSchema } from "./song-editor-model";
 
 describe("song editor model", () => {
   it("uses organization visibility for a new organization song", () => {
-    expect(getSongEditorDefaults(undefined, "organization-1").visibility).toBe("organization");
+    const defaults = getSongEditorDefaults(undefined, "organization-1");
+    expect(defaults.visibility).toBe("organization");
+    expect(defaults.content).toBe("");
   });
 
   it("keeps the existing song values", () => {
