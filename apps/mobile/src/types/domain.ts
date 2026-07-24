@@ -83,6 +83,7 @@ export interface Setlist {
   notes?: string;
   sourceText?: string;
   createdBy?: string;
+  deletedAt?: string;
   items?: SetlistItem[];
   syncStatus?: "local" | "pending" | "synced";
 }

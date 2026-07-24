@@ -14,6 +14,12 @@ const setlist = (id: string, serviceDate?: string): Setlist => ({
 });
 
 describe("selectNextSetlist", () => {
+  it("accepts today's program as next", () => {
+    expect(selectNextSetlist([setlist("today", "2026-07-01")], new Date(2026, 6, 1))?.id).toBe(
+      "today",
+    );
+  });
+
   it("chooses the nearest future program across sources", () => {
     expect(
       selectNextSetlist(
@@ -23,10 +29,19 @@ describe("selectNextSetlist", () => {
     ).toBe("organization");
   });
 
-  it("falls back to an undated program", () => {
+  it("does not fall back to an undated program", () => {
     expect(
       selectNextSetlist([setlist("past", "2026-06-01"), setlist("undated")], new Date(2026, 6, 1))
         ?.id,
-    ).toBe("undated");
+    ).toBeUndefined();
+  });
+
+  it("does not fall back to the most recent past program", () => {
+    expect(
+      selectNextSetlist(
+        [setlist("older", "2026-06-01"), setlist("recent", "2026-06-30")],
+        new Date(2026, 6, 1),
+      )?.id,
+    ).toBeUndefined();
   });
 });

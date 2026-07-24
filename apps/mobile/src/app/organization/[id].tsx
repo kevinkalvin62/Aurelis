@@ -26,11 +26,12 @@ import {
   isOrganizationLeader,
   organizationRoleLabel,
 } from "@/features/organizations/permissions";
+import { splitSetlistsByTime } from "@/features/setlists/setlist-time";
 import { useAuthStore } from "@/store/auth-store";
 import { useSongStore } from "@/store/song-store";
 import { toast } from "@/store/toast-store";
 import { formatFriendlyDate } from "@/lib/dates";
-import type { OrganizationRole } from "@/types/domain";
+import type { OrganizationRole, Setlist } from "@/types/domain";
 
 type Section = "library" | "programs" | "members";
 
@@ -88,6 +89,11 @@ export default function OrganizationScreen() {
   const canDirect = isOrganizationLeader(organization?.role);
   const canAdmin = canAdministerOrganization(organization?.role);
   const canAddSong = canAddOrganizationSong(organization?.role);
+  const programSections = splitSetlistsByTime(setlists);
+  const hasPrograms =
+    programSections.upcoming.length ||
+    programSections.undated.length ||
+    programSections.past.length;
 
   const addMember = async () => {
     if (!email.includes("@")) {
@@ -307,28 +313,19 @@ export default function OrganizationScreen() {
                 />
               ) : null}
             </View>
-            {setlists.length ? (
-              setlists.map((setlist) => (
-                <Pressable
-                  key={setlist.id}
-                  onPress={() =>
-                    router.push({
-                      pathname: "/setlist/[id]",
-                      params: { id: setlist.id, organizationId: id },
-                    })
-                  }
-                  style={styles.program}
-                >
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.rowTitle}>{setlist.title}</Text>
-                    <Text style={styles.rowCopy}>
-                      {formatFriendlyDate(setlist.serviceDate)} ·{" "}
-                      {setlist.items?.length ?? setlist.songIds.length} canciones
-                    </Text>
-                  </View>
-                  <Text style={styles.chevron}>›</Text>
-                </Pressable>
-              ))
+            {hasPrograms ? (
+              <>
+                <OrganizationProgramSection
+                  title="Programas próximos"
+                  setlists={programSections.upcoming}
+                  organizationId={id}
+                />
+                <OrganizationProgramSection
+                  title="Historial"
+                  setlists={programSections.past}
+                  organizationId={id}
+                />
+              </>
             ) : (
               <ExperienceState
                 kind="empty"
@@ -510,6 +507,44 @@ export default function OrganizationScreen() {
   );
 }
 
+function OrganizationProgramSection({
+  title,
+  setlists,
+  organizationId,
+}: {
+  title: string;
+  setlists: Setlist[];
+  organizationId: string;
+}) {
+  if (!setlists.length) return null;
+  return (
+    <View style={styles.programSection}>
+      <Text style={styles.programSectionTitle}>{title}</Text>
+      {setlists.map((setlist) => (
+        <Pressable
+          key={setlist.id}
+          onPress={() =>
+            router.push({
+              pathname: "/setlist/[id]",
+              params: { id: setlist.id, organizationId },
+            })
+          }
+          style={styles.program}
+        >
+          <View style={{ flex: 1 }}>
+            <Text style={styles.rowTitle}>{setlist.title}</Text>
+            <Text style={styles.rowCopy}>
+              {formatFriendlyDate(setlist.serviceDate)} ·{" "}
+              {setlist.items?.length ?? setlist.songIds.length} canciones
+            </Text>
+          </View>
+          <Text style={styles.chevron}>›</Text>
+        </Pressable>
+      ))}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   nav: {
@@ -597,6 +632,13 @@ const styles = StyleSheet.create({
   },
   materialLink: { alignItems: "flex-end", paddingBottom: 9 },
   materialLinkText: { color: colors.accent, fontSize: 8, fontWeight: "800" },
+  programSection: { marginBottom: spacing.md },
+  programSectionTitle: {
+    color: colors.text,
+    fontSize: 13,
+    fontWeight: "800",
+    marginBottom: 8,
+  },
   program: {
     minHeight: 68,
     flexDirection: "row",

@@ -1,8 +1,9 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { appStorage } from "@/lib/storage";
-import { formatFriendlyDate } from "@/lib/dates";
-import type { Setlist, SetlistDraftItem } from "@/types/domain";
+import { appStorage } from "../lib/storage";
+import { formatFriendlyDate } from "../lib/dates";
+import { softDeleteSetlistById } from "../features/setlists/setlist-soft-delete";
+import type { Setlist, SetlistDraftItem } from "../types/domain";
 
 interface SetlistState {
   setlists: Setlist[];
@@ -88,7 +89,9 @@ export const useSetlistStore = create<SetlistState>()(
           }),
         })),
       deleteSetlist: (id) =>
-        set((state) => ({ setlists: state.setlists.filter((setlist) => setlist.id !== id) })),
+        set((state) => ({
+          setlists: softDeleteSetlistById(state.setlists, id),
+        })),
     }),
     {
       name: "aurelis:inactive:setlists",
